@@ -7,7 +7,7 @@
     android:orientation="vertical"
     android:background="#E8EAF6"
     android:paddingTop="100px"
-    tools:context=".MainActivity">
+    tools:context=".ui.MainActivity">
 
     <!-- Thanh tiêu đề -->
     <RelativeLayout

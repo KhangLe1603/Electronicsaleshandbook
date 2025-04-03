@@ -1,4 +1,4 @@
-package com.example.electronicsaleshandbook;
+package com.example.electronicsaleshandbook.viewmodel;
 
 import android.os.Bundle;
 import android.os.Handler;
@@ -8,6 +8,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.electronicsaleshandbook.R;
+import com.example.electronicsaleshandbook.model.Products;
+import com.example.electronicsaleshandbook.ui.RecyclerView_Adapter_Products;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.Arrays;
@@ -17,7 +20,7 @@ public class ProductManagement extends AppCompatActivity {
     FloatingActionButton fabMain, fab1, fab2;
     boolean isFabOpen = false;
     private RecyclerView recyclerView;
-    private QLSP productAdapter;
+    private RecyclerView_Adapter_Products productAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,22 +42,22 @@ public class ProductManagement extends AppCompatActivity {
         });
 
         // Tạo danh sách sản phẩm
-        List<SP> productList = Arrays.asList(
-                new SP("Sản phẩm A", "1.000.000 VNĐ"),
-                new SP("Sản phẩm B", "2.000.000 VNĐ"),
-                new SP("Sản phẩm C", "3.000.000 VNĐ"),
-                new SP("Sản phẩm D", "4.000.000 VNĐ"),
-                new SP("Sản phẩm E", "4.000.000 VNĐ"),
-                new SP("Sản phẩm F", "4.000.000 VNĐ"),
-                new SP("Sản phẩm G", "4.000.000 VNĐ"),
-                new SP("Sản phẩm H", "4.000.000 VNĐ"),
-                new SP("Sản phẩm H", "4.000.000 VNĐ"),
-                new SP("Sản phẩm J", "4.000.000 VNĐ"),
-                new SP("Sản phẩm K", "5.000.000 VNĐ")
+        List<Products> productList = Arrays.asList(
+                new Products("Sản phẩm A", "1.000.000 VNĐ"),
+                new Products("Sản phẩm B", "2.000.000 VNĐ"),
+                new Products("Sản phẩm C", "3.000.000 VNĐ"),
+                new Products("Sản phẩm D", "4.000.000 VNĐ"),
+                new Products("Sản phẩm E", "4.000.000 VNĐ"),
+                new Products("Sản phẩm F", "4.000.000 VNĐ"),
+                new Products("Sản phẩm G", "4.000.000 VNĐ"),
+                new Products("Sản phẩm H", "4.000.000 VNĐ"),
+                new Products("Sản phẩm H", "4.000.000 VNĐ"),
+                new Products("Sản phẩm J", "4.000.000 VNĐ"),
+                new Products("Sản phẩm K", "5.000.000 VNĐ")
         );
 
         // Gán adapter cho RecyclerView
-        productAdapter = new QLSP(productList);
+        productAdapter = new RecyclerView_Adapter_Products(productList);
         recyclerView.setAdapter(productAdapter);
     }
 

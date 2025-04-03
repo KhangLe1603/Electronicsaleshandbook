@@ -1,21 +1,16 @@
-package com.example.electronicsaleshandbook;
+package com.example.electronicsaleshandbook.ui;
 
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.util.ArrayList;
-import java.util.List;
+import com.example.electronicsaleshandbook.viewmodel.ProductManagement;
+import com.example.electronicsaleshandbook.R;
 
 public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
@@ -41,8 +36,4 @@ public class MainActivity extends AppCompatActivity {
         });
 
     }
-
-
-
-
 }

@@ -1,4 +1,4 @@
-package com.example.electronicsaleshandbook;
+package com.example.electronicsaleshandbook.ui;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,13 +8,16 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.electronicsaleshandbook.R;
+import com.example.electronicsaleshandbook.model.Products;
+
 import java.util.List;
 
-public class QLSP extends RecyclerView.Adapter<QLSP.ProductViewHolder> {
+public class RecyclerView_Adapter_Products extends RecyclerView.Adapter<RecyclerView_Adapter_Products.ProductViewHolder> {
 
-    private List<SP> productList;
+    private List<Products> productList;
 
-    public QLSP(List<SP> productList) {
+    public RecyclerView_Adapter_Products(List<Products> productList) {
         this.productList = productList;
     }
 
@@ -27,7 +30,7 @@ public class QLSP extends RecyclerView.Adapter<QLSP.ProductViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull ProductViewHolder holder, int position) {
-        SP product = productList.get(position);
+        Products product = productList.get(position);
         holder.productName.setText(product.getName());
         holder.productPrice.setText(product.getPrice());
     }

@@ -1,10 +1,10 @@
-package com.example.electronicsaleshandbook;
+package com.example.electronicsaleshandbook.model;
 
-public class SP {
+public class Products {
     private String name;
     private String price;
 
-    public SP(String name, String price) {
+    public Products(String name, String price) {
         this.name = name;
         this.price = price;
     }
