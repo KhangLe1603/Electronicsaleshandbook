@@ -5,6 +5,7 @@ import android.os.Handler;
 import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -68,7 +69,8 @@ public class ProductManagement extends AppCompatActivity {
         fab1.animate().translationY(-180).alpha(1).setDuration(200);
         fab2.animate().translationY(-360).alpha(1).setDuration(200);
 
-        fabMain.setImageResource(R.drawable.close); // Chuyển thành nút đóng
+        fabMain.setImageResource(R.drawable.close);
+        fabMain.setBackgroundTintList(ContextCompat.getColorStateList(this, R.color.light_blue));
         isFabOpen = true;
     }
 
@@ -81,7 +83,8 @@ public class ProductManagement extends AppCompatActivity {
             fab2.setVisibility(View.GONE);
         }, 200);
 
-        fabMain.setImageResource(R.drawable.icon_menu); // Quay lại icon menu
+        fabMain.setImageResource(R.drawable.ic_menu); // Quay lại icon menu
+        fabMain.setBackgroundTintList(ContextCompat.getColorStateList(this, R.color.blue_button));
         isFabOpen = false;
     }
 }

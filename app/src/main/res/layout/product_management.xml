@@ -13,7 +13,7 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:background="#3F51B5"
+        android:background="#4044F9"
         android:padding="8dp">
 
         <TextView
@@ -21,7 +21,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="DANH SÁCH SẢN PHẨM"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/white"
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_centerInParent="true"/>
@@ -37,11 +37,6 @@
 
     </RelativeLayout>
 
-    <!-- Thanh tìm kiếm -->
-
-    <!-- RecyclerView -->
-
-    <!-- Nút hành động -->
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -72,7 +67,8 @@
 
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="754dp">
+        android:layout_height="match_parent"
+        android:background="#EFEFFF">
 
         <!-- Floating Action Button chính -->
         <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -82,8 +78,8 @@
             android:layout_gravity="end|bottom"
             android:layout_margin="16dp"
             android:contentDescription="Menu"
-            android:src="@drawable/icon_menu"
-            app:backgroundTint="#3F51B5" />
+            android:src="@drawable/menu_opiton"
+            app:backgroundTint="#4044F9" />
 
         <!-- Floating Button 1 -->
         <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -97,7 +93,7 @@
             android:contentDescription="Lựa chọn 1"
             android:src="@drawable/account"
             android:visibility="gone"
-            app:backgroundTint="#FF4081" />
+            app:backgroundTint="#FAC08B" />
 
         <!-- Floating Button 2 -->
         <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -111,7 +107,7 @@
             android:contentDescription="Lựa chọn 2"
             android:src="@drawable/shop"
             android:visibility="gone"
-            app:backgroundTint="#FF9800" />
+            app:backgroundTint="#FAC08B" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerView"
@@ -121,8 +117,8 @@
             android:contentDescription="Danh sách sản phẩm"
             android:focusable="true"
             android:padding="8dp"
+            android:background="#EFEFFF"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager">
-
         </androidx.recyclerview.widget.RecyclerView>
     </FrameLayout>
 
