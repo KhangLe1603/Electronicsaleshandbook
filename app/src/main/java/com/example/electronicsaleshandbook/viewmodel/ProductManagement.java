@@ -83,7 +83,7 @@ public class ProductManagement extends AppCompatActivity {
             fab2.setVisibility(View.GONE);
         }, 200);
 
-        fabMain.setImageResource(R.drawable.ic_menu); // Quay lại icon menu
+        fabMain.setImageResource(R.drawable.menu_opiton); // Quay lại icon menu
         fabMain.setBackgroundTintList(ContextCompat.getColorStateList(this, R.color.blue_button));
         isFabOpen = false;
     }
