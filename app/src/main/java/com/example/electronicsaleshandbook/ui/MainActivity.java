@@ -9,7 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.electronicsaleshandbook.viewmodel.ProductManagement;
+import com.example.electronicsaleshandbook.viewmodel.ProductViewModel;
 import com.example.electronicsaleshandbook.R;
 
 public class MainActivity extends AppCompatActivity {
@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
         btnProductsManagement.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, ProductManagement.class);
+                Intent intent = new Intent(MainActivity.this, ProductsView.class);
                 startActivity(intent);
             }
         });
