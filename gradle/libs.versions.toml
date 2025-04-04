@@ -12,6 +12,8 @@ google-api-client = "1.33.0"
 google-sheets-api = "v4-rev612-1.25.0"
 google-auth = "0.27.0"
 
+swiperefreshlayout = "1.1.0"
+
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -26,6 +28,7 @@ google-api-client = { module = "com.google.api-client:google-api-client-android"
 google-sheets-api = { module = "com.google.apis:google-api-services-sheets", version.ref = "google-sheets-api" }
 google-auth = { module = "com.google.auth:google-auth-library-oauth2-http", version.ref = "google-auth" }
 
+swiperefreshlayout = { module = "androidx.swiperefreshlayout:swiperefreshlayout", version.ref = "swiperefreshlayout" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
