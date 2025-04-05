@@ -2,5 +2,4 @@
 <resources>
     <style name="Theme.MyApp" parent="Theme.MaterialComponents.Light.NoActionBar">
     </style>
-
 </resources>

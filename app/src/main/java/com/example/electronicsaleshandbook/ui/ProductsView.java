@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
 
@@ -21,6 +22,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.example.electronicsaleshandbook.R;
 import com.example.electronicsaleshandbook.viewmodel.ProductViewModel;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 
 public class ProductsView extends AppCompatActivity {
 
@@ -39,6 +41,14 @@ public class ProductsView extends AppCompatActivity {
         EditText searchBar = findViewById(R.id.searchBar);
         ImageButton searchButton = findViewById(R.id.imageButtonSearch);
 
+        MaterialAutoCompleteTextView sortDropdown = findViewById(R.id.sortDropdown);
+        ArrayAdapter<CharSequence> adapterDropdown = ArrayAdapter.createFromResource(
+                this,
+                R.array.sort_options,
+                android.R.layout.simple_dropdown_item_1line
+        );
+        sortDropdown.setAdapter(adapterDropdown);
+
         viewModel = new ViewModelProvider(this,
                 new ViewModelProvider.Factory() {
                     @NonNull
@@ -53,7 +63,6 @@ public class ProductsView extends AppCompatActivity {
             swipeRefreshLayout.setRefreshing(false);
         });
 
-
         searchButton.setOnClickListener(v -> {
             String query = searchBar.getText().toString().trim();
             viewModel.setSearchQuery(query); // Cập nhật từ khóa tìm kiếm
@@ -62,6 +71,11 @@ public class ProductsView extends AppCompatActivity {
         swipeRefreshLayout.setOnRefreshListener(() -> {
             viewModel.refreshProducts(); // Gọi làm mới dữ liệu
             searchBar.setText("");
+            sortDropdown.setText(adapterDropdown.getItem(0), false);
+        });
+
+        sortDropdown.setOnItemClickListener((parent, view, position, id) -> {
+            viewModel.setSortOption(position); // Cập nhật tiêu chí sắp xếp
         });
 
         setupFabMenu();
@@ -102,19 +116,4 @@ public class ProductsView extends AppCompatActivity {
         });
     }
 
-    private void setupSearchBar() {
-        EditText searchBar = findViewById(R.id.searchBar);
-        searchBar.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                // Lọc danh sách sản phẩm theo search
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {}
-        });
-    }
 }
