@@ -68,7 +68,9 @@ public class AddProductActivity extends AppCompatActivity {
 
                 viewModel.addProduct(name, description, unitPrice, sellingPrice, unit);
                 Toast.makeText(this, "Đang thêm sản phẩm...", Toast.LENGTH_SHORT).show();
-                setResult(RESULT_OK);
+                Intent intent = new Intent();
+                intent.putExtra("REFRESH", true);
+                setResult(RESULT_OK, intent);
                 finish();
             }
         });

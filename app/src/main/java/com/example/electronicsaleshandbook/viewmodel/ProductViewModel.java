@@ -51,6 +51,7 @@ public class ProductViewModel extends ViewModel {
         return Transformations.switchMap(searchQuery, query ->
                 Transformations.switchMap(sortOption, sort ->
                         Transformations.map(allProducts, products -> {
+                            Log.d("ProductViewModel", "Filtering products, size: " + (products != null ? products.size() : 0));
                             if (products == null) {
                                 return null; // Trả về null nếu không có dữ liệu
                             }
@@ -90,6 +91,7 @@ public class ProductViewModel extends ViewModel {
     }
 
     public void refreshProducts() {
+        Log.d("ProductViewModel", "Refreshing products...");
         searchQuery.postValue(""); // Dùng postValue thay vì setValue
         sortOption.postValue(0);   // Dùng postValue thay vì setValue
         repository.refreshProducts();
@@ -149,10 +151,17 @@ public class ProductViewModel extends ViewModel {
                         .setValueInputOption("RAW")
                         .execute();
 
-                // Làm mới danh sách
+                // Chờ 1 giây để Google Sheets cập nhật trước khi làm mới
+                Thread.sleep(1000);
                 refreshProducts();
             } catch (IOException e) {
-                e.printStackTrace();
+                Log.e("ProductViewModel", "Error adding product", e);
+            } catch (InterruptedException e) {
+                Log.w("ProductViewModel", "Thread interrupted while waiting to refresh", e);
+                Thread.currentThread().interrupt(); // Đặt lại trạng thái interrupt
+                refreshProducts(); // Vẫn làm mới dù bị gián đoạn
+            } catch (NumberFormatException e) {
+                Log.e("ProductViewModel", "Invalid number format in unitPrice or sellingPrice", e);
             }
         }).start();
     }

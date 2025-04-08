@@ -1,6 +1,8 @@
 package com.example.electronicsaleshandbook.ui;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -31,6 +33,8 @@ public class ProductsView extends AppCompatActivity {
 
     private ProductViewModel viewModel;
     private ProductAdapter adapter;
+    private int lastProductSize = -1;
+    private boolean expectingChange = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,8 +68,21 @@ public class ProductsView extends AppCompatActivity {
                 }).get(ProductViewModel.class);
 
         viewModel.getFilteredProducts().observe(this, products -> {
+            int currentSize = products != null ? products.size() : 0;
+            Log.d("ProductsView", "Observer triggered, products size: " + currentSize);
             adapter.setProducts(products);
             swipeRefreshLayout.setRefreshing(false);
+
+            // Kiểm tra nếu đang chờ thay đổi và kích thước không tăng
+            if (expectingChange && lastProductSize != -1 && currentSize <= lastProductSize) {
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    Log.d("ProductsView", "Retrying refresh due to unchanged size");
+                    viewModel.refreshProducts();
+                }, 2000); // Thử lại sau 2 giây
+            } else {
+                expectingChange = false; // Reset cờ sau khi cập nhật thành công
+            }
+            lastProductSize = currentSize;
         });
 
         adapter.setOnProductClickListener(product -> {
@@ -90,7 +107,6 @@ public class ProductsView extends AppCompatActivity {
 
         setupFabMenu();
     }
-
 
     private float dpToPx(float dp) {
         return dp * getResources().getDisplayMetrics().density;
@@ -141,7 +157,12 @@ public class ProductsView extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         Log.d("ProductsView", "onActivityResult: requestCode=" + requestCode + ", resultCode=" + resultCode);
         if (resultCode == RESULT_OK && (requestCode == 1 || requestCode == 2)) {
-            viewModel.refreshProducts();
+            if (data != null && data.getBooleanExtra("REFRESH", false)) {
+                expectingChange = true;
+                SwipeRefreshLayout swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
+                swipeRefreshLayout.setRefreshing(true); // Hiển thị loading
+                viewModel.refreshProducts(); // Gọi làm mới
+            }
         }
     }
 

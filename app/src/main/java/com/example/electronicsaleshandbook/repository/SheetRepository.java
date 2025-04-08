@@ -2,6 +2,7 @@ package com.example.electronicsaleshandbook.repository;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -9,6 +10,7 @@ import androidx.lifecycle.MutableLiveData;
 import com.example.electronicsaleshandbook.model.Product;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
@@ -44,7 +46,7 @@ public class SheetRepository {
                     credential)
                     .setApplicationName("Your App Name")
                     .build();
-            fetchProducts();
+            fetchProductsWithBackoff(0, 5);
         } catch (FileNotFoundException e) {
             throw new IOException("Service account file not found in assets", e);
         }
@@ -55,23 +57,21 @@ public class SheetRepository {
     }
 
     public void refreshProducts() {
-        fetchProducts();
+        fetchProductsWithBackoff(0, 5);
     }
 
     public Sheets getSheetsService() {
         return service;
     }
 
-    private void fetchProducts() {
+    private void fetchProductsWithBackoff(int attempt, int maxAttempts) {
         new Thread(() -> {
             try {
                 ValueRange response = service.spreadsheets().values()
                         .get(SPREADSHEET_ID, RANGE)
                         .execute();
-
                 List<Product> products = new ArrayList<>();
                 List<List<Object>> values = response.getValues();
-
                 if (values != null) {
                     for (int i = 0; i < values.size(); i++) {
                         List<Object> row = values.get(i);
@@ -81,14 +81,30 @@ public class SheetRepository {
                         String sellingPrice = row.size() > 3 ? row.get(3).toString() : "";
                         String unit = row.size() > 4 ? row.get(4).toString() : "";
                         Product product = new Product(name, description, unitPrice, sellingPrice, unit);
-                        product.setSheetRowIndex(i + 2); // Gán chỉ số dòng thực tế (bắt đầu từ dòng 2)
+                        product.setSheetRowIndex(i + 2);
                         products.add(product);
                     }
                 }
+                Log.d("SheetRepository", "Fetched products, size: " + products.size());
                 productsLiveData.postValue(products);
+            } catch (GoogleJsonResponseException e) {
+                if (e.getStatusCode() == 429 && attempt < maxAttempts) {
+                    long delay = (long) Math.pow(2, attempt) * 1000; // Exponential backoff: 1s, 2s, 4s, 8s, 16s
+                    Log.w("SheetRepository", "Quota exceeded, retrying in " + delay + "ms (attempt " + (attempt + 1) + "/" + maxAttempts + ")");
+                    try {
+                        Thread.sleep(delay);
+                        fetchProductsWithBackoff(attempt + 1, maxAttempts);
+                    } catch (InterruptedException ie) {
+                        Log.e("SheetRepository", "Interrupted during backoff", ie);
+                        productsLiveData.postValue(productsLiveData.getValue()); // Giữ dữ liệu cũ
+                    }
+                } else {
+                    Log.e("SheetRepository", "Error fetching products", e);
+                    productsLiveData.postValue(productsLiveData.getValue()); // Giữ dữ liệu cũ thay vì rỗng
+                }
             } catch (IOException e) {
-                e.printStackTrace();
-                productsLiveData.postValue(new ArrayList<>());
+                Log.e("SheetRepository", "Error fetching products", e);
+                productsLiveData.postValue(productsLiveData.getValue()); // Giữ dữ liệu cũ
             }
         }).start();
     }

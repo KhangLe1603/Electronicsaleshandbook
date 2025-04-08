@@ -8,6 +8,7 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -60,11 +61,23 @@ public class ProductDetail extends AppCompatActivity {
             finish();
         }
 
+        // Khởi tạo trạng thái ban đầu của các nút
+        btnLuu.setEnabled(false);
+        btnLuu.setAlpha(0.5f); // Mờ khi disabled
+        btnSua.setEnabled(true);
+        btnSua.setAlpha(1.0f); // Rõ khi enabled
+        btnXoa.setEnabled(true);
+        btnXoa.setAlpha(1.0f); // Rõ khi enabled
+        setEditMode(false);
+
         btnSua.setOnClickListener(v -> {
             setEditMode(true);
             btnLuu.setEnabled(true);
+            btnLuu.setAlpha(1.0f);
             btnSua.setEnabled(false);
+            btnSua.setAlpha(0.5f);
             btnXoa.setEnabled(false);
+            btnXoa.setAlpha(0.5f);
         });
 
         btnLuu.setOnClickListener(v -> {
@@ -83,17 +96,34 @@ public class ProductDetail extends AppCompatActivity {
             Toast.makeText(this, "Đang cập nhật sản phẩm...", Toast.LENGTH_SHORT).show();
             setEditMode(false);
             btnLuu.setEnabled(false);
+            btnLuu.setAlpha(0.5f); // Mờ khi disabled
             btnSua.setEnabled(true);
+            btnSua.setAlpha(1.0f); // Rõ khi enabled
             btnXoa.setEnabled(true);
-            setResult(RESULT_OK);
+            btnXoa.setAlpha(1.0f); // Rõ khi enabled
+
+            Intent intent = new Intent();
+            intent.putExtra("REFRESH", true);
+            setResult(RESULT_OK, intent);
             finish();
         });
 
         btnXoa.setOnClickListener(v -> {
-            viewModel.deleteProduct(product.getSheetRowIndex());
-            Toast.makeText(this, "Đã xoá sản phẩm", Toast.LENGTH_SHORT).show();
-            setResult(RESULT_OK);
-            finish();
+            // Hiển thị hộp thoại xác nhận xóa
+            new AlertDialog.Builder(this)
+                    .setTitle("Xác nhận xóa")
+                    .setMessage("Bạn có chắc chắn muốn xóa sản phẩm này không?")
+                    .setPositiveButton("Có", (dialog, which) -> {
+                        viewModel.deleteProduct(product.getSheetRowIndex());
+                        Toast.makeText(this, "Đã xóa sản phẩm", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent();
+                        intent.putExtra("REFRESH", true);
+                        setResult(RESULT_OK, intent);
+                        finish();
+                    })
+                    .setNegativeButton("Không", (dialog, which) -> dialog.dismiss())
+                    .setCancelable(true)
+                    .show();
         });
     }
 
