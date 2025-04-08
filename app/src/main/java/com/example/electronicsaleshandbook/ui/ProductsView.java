@@ -98,6 +98,7 @@ public class ProductsView extends AppCompatActivity {
         FloatingActionButton fabFilter = findViewById(R.id.fabFilter);
         FloatingActionButton fabOption1 = findViewById(R.id.fabOption1);
         FloatingActionButton fabOption2 = findViewById(R.id.fabOption2);
+        FloatingActionButton fabAddProduct = findViewById(R.id.fabAddProduct);
 
         final boolean[] isExpanded = {false};
 
@@ -106,9 +107,11 @@ public class ProductsView extends AppCompatActivity {
                 // Mở menu: hiện 2 nút và di chuyển lên theo Y (đơn vị pixel)
                 fabOption1.setVisibility(View.VISIBLE);
                 fabOption2.setVisibility(View.VISIBLE);
+                fabAddProduct.setVisibility(View.VISIBLE);
 
                 fabOption1.animate().translationY(-dpToPx(80)).setDuration(200).start();
                 fabOption2.animate().translationY(-dpToPx(160)).setDuration(200).start();
+                fabAddProduct.animate().translationY(-dpToPx(240)).setDuration(200).start();
 
                 fabFilter.setImageResource(R.drawable.close); // icon back
                 fabFilter.setBackgroundTintList(getResources().getColorStateList(R.color.fab_open_color, getTheme()));
@@ -116,8 +119,9 @@ public class ProductsView extends AppCompatActivity {
                 // Đóng menu: di chuyển xuống và ẩn
                 fabOption1.animate().translationY(0).setDuration(200).withEndAction(() -> fabOption1.setVisibility(View.GONE)).start();
                 fabOption2.animate().translationY(0).setDuration(200).withEndAction(() -> fabOption2.setVisibility(View.GONE)).start();
+                fabAddProduct.animate().translationY(0).setDuration(200).withEndAction(() -> fabAddProduct.setVisibility(View.GONE)).start();
 
-                fabFilter.setImageResource(R.drawable.icon_menu); // icon gốc
+                fabFilter.setImageResource(R.drawable.menu_opiton); // icon gốc
                 fabFilter.setBackgroundTintList(getResources().getColorStateList(R.color.fab_close_color, getTheme()));
             }
 

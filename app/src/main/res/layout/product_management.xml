@@ -164,6 +164,21 @@
             android:visibility="gone"
             app:backgroundTint="#FF9800" />
 
+        <!-- Floating Button 3 - Thêm sản phẩm -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabAddProduct"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|bottom"
+            android:layout_margin="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="256dp"
+            android:contentDescription="Thêm sản phẩm"
+            android:src="@drawable/add_product"
+            android:visibility="gone"
+            app:backgroundTint="#4CAF50" />
+
+
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:id="@+id/swipeRefreshLayout"
             android:layout_width="match_parent"
