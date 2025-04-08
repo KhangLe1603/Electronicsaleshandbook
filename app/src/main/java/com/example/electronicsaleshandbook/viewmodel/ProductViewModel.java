@@ -10,13 +10,18 @@ import androidx.lifecycle.ViewModel;
 
 import com.example.electronicsaleshandbook.model.Product;
 import com.example.electronicsaleshandbook.repository.SheetRepository;
+import com.google.api.services.sheets.v4.model.BatchUpdateSpreadsheetRequest;
+import com.google.api.services.sheets.v4.model.DeleteDimensionRequest;
+import com.google.api.services.sheets.v4.model.DimensionRange;
+import com.google.api.services.sheets.v4.model.Request;
+import com.google.api.services.sheets.v4.model.ValueRange;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 public class ProductViewModel extends ViewModel {
@@ -85,8 +90,8 @@ public class ProductViewModel extends ViewModel {
     }
 
     public void refreshProducts() {
-        searchQuery.setValue("");
-        sortOption.setValue(0);
+        searchQuery.postValue(""); // Dùng postValue thay vì setValue
+        sortOption.postValue(0);   // Dùng postValue thay vì setValue
         repository.refreshProducts();
     }
 
@@ -114,4 +119,91 @@ public class ProductViewModel extends ViewModel {
         }
     }
 
+    // Thêm sản phẩm mới vào Google Sheets
+    public void addProduct(String name, String description, String unitPrice, String sellingPrice, String unit) {
+        new Thread(() -> {
+            try {
+                // Lấy dữ liệu hiện tại để tìm dòng trống cuối cùng từ cột B
+                ValueRange existingData = repository.getSheetsService().spreadsheets().values()
+                        .get("1T0vRbdFnjTUTKkgcpbSuvjNnbG9eD49j_xjlknWtj_A", "Sheet1!B2:F")
+                        .execute();
+                int lastRow = existingData.getValues() != null ? existingData.getValues().size() + 1 : 1; // Dòng cuối + 1
+
+                // Chỉ định phạm vi chính xác: B<row>:F<row>
+                String range = "Sheet1!B" + (lastRow + 1) + ":F" + (lastRow + 1);
+
+                // Chuẩn bị dữ liệu với thứ tự đúng: B (name), C (description), D (unitPrice), E (sellingPrice), F (unit)
+                ValueRange body = new ValueRange()
+                        .setValues(Arrays.asList(
+                                Arrays.asList(
+                                        name,
+                                        description,
+                                        Double.parseDouble(unitPrice),
+                                        Double.parseDouble(sellingPrice),
+                                        unit)
+                        ));
+
+                // Ghi dữ liệu vào phạm vi đã chỉ định
+                repository.getSheetsService().spreadsheets().values()
+                        .update("1T0vRbdFnjTUTKkgcpbSuvjNnbG9eD49j_xjlknWtj_A", range, body)
+                        .setValueInputOption("RAW")
+                        .execute();
+
+                // Làm mới danh sách
+                refreshProducts();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
+
+    public void updateProduct(int sheetRowIndex, String name, String description, String unitPrice, String sellingPrice, String unit) {
+        new Thread(() -> {
+            try {
+                String range = "Sheet1!B" + sheetRowIndex + ":F" + sheetRowIndex;
+
+                ValueRange body = new ValueRange()
+                        .setValues(Arrays.asList(
+                                Arrays.asList(name, description, Double.parseDouble(unitPrice), Double.parseDouble(sellingPrice), unit)
+                        ));
+
+                repository.getSheetsService().spreadsheets().values()
+                        .update("1T0vRbdFnjTUTKkgcpbSuvjNnbG9eD49j_xjlknWtj_A", range, body)
+                        .setValueInputOption("RAW")
+                        .execute();
+
+                refreshProducts();
+            } catch (IOException | NumberFormatException e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
+
+    public void deleteProduct(int sheetRowIndex) {
+        new Thread(() -> {
+            try {
+                int adjustedRowIndex = sheetRowIndex - 1; // Chỉ số dòng cho BatchUpdate bắt đầu từ 0
+
+                DeleteDimensionRequest deleteRequest = new DeleteDimensionRequest()
+                        .setRange(new DimensionRange()
+                                .setSheetId(0)
+                                .setDimension("ROWS")
+                                .setStartIndex(adjustedRowIndex)
+                                .setEndIndex(adjustedRowIndex + 1)
+                        );
+
+                BatchUpdateSpreadsheetRequest batchRequest = new BatchUpdateSpreadsheetRequest()
+                        .setRequests(Collections.singletonList(
+                                new Request().setDeleteDimension(deleteRequest)
+                        ));
+
+                repository.getSheetsService().spreadsheets()
+                        .batchUpdate("1T0vRbdFnjTUTKkgcpbSuvjNnbG9eD49j_xjlknWtj_A", batchRequest)
+                        .execute();
+                refreshProducts();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
 }

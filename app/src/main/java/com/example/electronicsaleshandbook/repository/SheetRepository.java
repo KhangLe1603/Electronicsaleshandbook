@@ -36,7 +36,7 @@ public class SheetRepository {
         try {
             GoogleCredential credential = GoogleCredential.fromStream(
                             context.getAssets().open("service_account.json"))
-                    .createScoped(Collections.singleton(SheetsScopes.SPREADSHEETS_READONLY));
+                    .createScoped(Collections.singleton(SheetsScopes.SPREADSHEETS));
 
             service = new Sheets.Builder(
                     new NetHttpTransport(),
@@ -58,6 +58,10 @@ public class SheetRepository {
         fetchProducts();
     }
 
+    public Sheets getSheetsService() {
+        return service;
+    }
+
     private void fetchProducts() {
         new Thread(() -> {
             try {
@@ -69,13 +73,16 @@ public class SheetRepository {
                 List<List<Object>> values = response.getValues();
 
                 if (values != null) {
-                    for (List<Object> row : values) {
+                    for (int i = 0; i < values.size(); i++) {
+                        List<Object> row = values.get(i);
                         String name = row.size() > 0 ? row.get(0).toString() : "";
                         String description = row.size() > 1 ? row.get(1).toString() : "";
                         String unitPrice = row.size() > 2 ? row.get(2).toString() : "";
                         String sellingPrice = row.size() > 3 ? row.get(3).toString() : "";
                         String unit = row.size() > 4 ? row.get(4).toString() : "";
-                        products.add(new Product(name, description, unitPrice, sellingPrice, unit));
+                        Product product = new Product(name, description, unitPrice, sellingPrice, unit);
+                        product.setSheetRowIndex(i + 2); // Gán chỉ số dòng thực tế (bắt đầu từ dòng 2)
+                        products.add(product);
                     }
                 }
                 productsLiveData.postValue(products);

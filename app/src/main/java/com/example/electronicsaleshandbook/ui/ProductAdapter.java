@@ -27,9 +27,14 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
     }
 
     public void setProducts(List<Product> products) {
-        this.products = products != null ? products : new ArrayList<>();
+        if (products == null) {
+            this.products = new ArrayList<>();
+        } else {
+            this.products = new ArrayList<>(products); // Tạo bản sao để đảm bảo tham chiếu mới
+        }
         notifyDataSetChanged();
     }
+
 
     @NonNull
     @Override
@@ -43,7 +48,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
     public void onBindViewHolder(@NonNull ProductViewHolder holder, int position) {
         Product product = products.get(position);
         holder.productName.setText(product.getName());
-        holder.productPrice.setText(product.getPrice());
+        holder.productPrice.setText(product.getPrice() + "VND");
         holder.viewDetails.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onProductClick(product); // Gọi listener để mở ProductDetail

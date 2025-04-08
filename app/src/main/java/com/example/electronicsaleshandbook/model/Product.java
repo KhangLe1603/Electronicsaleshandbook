@@ -8,6 +8,7 @@ public class Product implements Serializable {
     private String unitPrice; // Đơn giá
     private String unit;
     private String description;
+    private int sheetRowIndex;
 
     public Product(String name, String description,String unitPrice, String price, String unit) {
         this.name = name;
@@ -24,4 +25,6 @@ public class Product implements Serializable {
     public String getUnitPrice() { return unitPrice; }
     public String getPrice() { return price ; }
     public String getUnit() { return unit; }
+    public void setSheetRowIndex(int sheetRowIndex) { this.sheetRowIndex = sheetRowIndex; }
+    public int getSheetRowIndex() {return sheetRowIndex;}
 }

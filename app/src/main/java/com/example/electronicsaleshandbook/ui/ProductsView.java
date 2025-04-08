@@ -3,6 +3,7 @@ package com.example.electronicsaleshandbook.ui;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -70,7 +71,7 @@ public class ProductsView extends AppCompatActivity {
         adapter.setOnProductClickListener(product -> {
             Intent intent = new Intent(ProductsView.this, ProductDetail.class);
             intent.putExtra("PRODUCT", product);
-            startActivity(intent);
+            startActivityForResult(intent, 2);
         });
         searchButton.setOnClickListener(v -> {
             String query = searchBar.getText().toString().trim();
@@ -89,6 +90,7 @@ public class ProductsView extends AppCompatActivity {
 
         setupFabMenu();
     }
+
 
     private float dpToPx(float dp) {
         return dp * getResources().getDisplayMetrics().density;
@@ -127,6 +129,27 @@ public class ProductsView extends AppCompatActivity {
 
             isExpanded[0] = !isExpanded[0];
         });
+
+        fabAddProduct.setOnClickListener(v -> {
+            Intent intent = new Intent(ProductsView.this, AddProductActivity.class);
+            startActivityForResult(intent, 1);
+        });
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        Log.d("ProductsView", "onActivityResult: requestCode=" + requestCode + ", resultCode=" + resultCode);
+        if (resultCode == RESULT_OK && (requestCode == 1 || requestCode == 2)) {
+            viewModel.refreshProducts();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+
 
 }

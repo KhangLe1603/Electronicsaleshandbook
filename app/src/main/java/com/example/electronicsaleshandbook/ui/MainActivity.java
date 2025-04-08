@@ -14,7 +14,6 @@ import com.example.electronicsaleshandbook.R;
 
 public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
-
     private Button btnProductsManagement;
 
     @Override

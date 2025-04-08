@@ -7,7 +7,7 @@
     android:orientation="vertical"
     android:background="#F1F1FF"
     android:paddingTop="40dp"
-    tools:context=".ui.ProductDetail">
+    tools:context=".ui.AddProductActivity">
 
     <!-- Toolbar -->
     <androidx.appcompat.widget.Toolbar
@@ -17,40 +17,33 @@
         android:background="#4C4CF1"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
-        <LinearLayout
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:layout_height="match_parent">
 
+            <!-- Nút back ở góc trái -->
             <ImageButton
                 android:id="@+id/btnBack"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="start|center_vertical"
                 android:src="@drawable/back"
                 android:background="@android:color/transparent"
                 android:contentDescription="Back"
                 app:tint="@android:color/white" />
 
+            <!-- Tiêu đề nằm giữa tuyệt đối -->
             <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="DANH SÁCH CHI TIẾT SẢN PHẨM"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="THÊM SẢN PHẨM"
                 android:textColor="@android:color/white"
                 android:textStyle="bold"
-                android:gravity="center"
-                android:textSize="16sp" />
-
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/account"
-                android:contentDescription="User Icon"
-                app:tint="@android:color/white"
-                android:layout_marginEnd="8dp"/>
-        </LinearLayout>
+                android:textSize="18sp" />
+        </FrameLayout>
     </androidx.appcompat.widget.Toolbar>
+
 
     <!-- Form -->
     <ScrollView
@@ -63,13 +56,11 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Tên sản phẩm -->
-            <TextView
-                android:layout_width="wrap_content"
+            <!-- Các EditText nhập liệu giống như layout trước -->
+            <TextView android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Tên Sản Phẩm:"
                 android:textStyle="bold"/>
-
             <EditText
                 android:id="@+id/edtTenSanPham"
                 android:layout_width="match_parent"
@@ -77,12 +68,9 @@
                 android:background="@android:drawable/editbox_background"
                 android:hint="Tên sản phẩm"
                 android:textColorHint="#33000000"
-                android:padding="8dp"
-                android:focusable="false"
-                android:clickable="false"/>
+                android:padding="8dp"/>
 
-            <TextView
-                android:layout_width="wrap_content"
+            <TextView android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Đơn giá (VND):"
                 android:textStyle="bold"/>
@@ -94,13 +82,9 @@
                 android:hint="Đơn giá"
                 android:textColorHint="#33000000"
                 android:background="@android:drawable/editbox_background"
-                android:padding="8dp"
-                android:focusable="false"
-                android:clickable="false"/>
+                android:padding="8dp"/>
 
-            <!-- Giá bán -->
-            <TextView
-                android:layout_width="wrap_content"
+            <TextView android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Giá bán (VND):"
                 android:textStyle="bold"/>
@@ -112,13 +96,9 @@
                 android:hint="Giá bán"
                 android:textColorHint="#33000000"
                 android:background="@android:drawable/editbox_background"
-                android:padding="8dp"
-                android:focusable="false"
-                android:clickable="false"/>
+                android:padding="8dp"/>
 
-            <!-- Đơn vị tính -->
-            <TextView
-                android:layout_width="wrap_content"
+            <TextView android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Đơn vị tính:"
                 android:textStyle="bold"/>
@@ -129,13 +109,9 @@
                 android:hint="Đơn vị tính"
                 android:textColorHint="#33000000"
                 android:background="@android:drawable/editbox_background"
-                android:padding="8dp"
-                android:focusable="false"
-                android:clickable="false"/>
+                android:padding="8dp"/>
 
-            <!-- Mô tả -->
-            <TextView
-                android:layout_width="wrap_content"
+            <TextView android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Mô tả:"
                 android:textStyle="bold"/>
@@ -149,11 +125,9 @@
                 android:padding="8dp"
                 android:minLines="3"
                 android:gravity="top"
-                android:inputType="textMultiLine"
-                android:focusable="false"
-                android:clickable="false"/>
+                android:inputType="textMultiLine"/>
 
-            <!-- Thêm vào cuối LinearLayout bên trong ScrollView -->
+            <!-- Nút thêm và huỷ -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -163,38 +137,24 @@
                 android:layout_marginBottom="32dp">
 
                 <Button
-                    android:id="@+id/btnSua"
+                    android:id="@+id/btnThem"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Sửa"
-                    android:layout_marginEnd="8dp"
-                    android:backgroundTint="#03A9F4"
-                    android:textColor="@android:color/white"/>
-
-                <Button
-                    android:id="@+id/btnLuu"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Lưu"
+                    android:text="Thêm"
                     android:layout_marginEnd="8dp"
                     android:backgroundTint="#4CAF50"
-                    android:textColor="@android:color/white"
-                    android:enabled="false" />
+                    android:textColor="@android:color/white"/>
 
                 <Button
-                    android:id="@+id/btnXoa"
+                    android:id="@+id/btnHuy"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Xoá"
-                    android:backgroundTint="#F44336"
+                    android:text="Huỷ"
+                    android:backgroundTint="#9E9E9E"
                     android:textColor="@android:color/white"/>
             </LinearLayout>
-
         </LinearLayout>
-
-
     </ScrollView>
 </LinearLayout>
