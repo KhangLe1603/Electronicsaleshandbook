@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="#E8EAF6"
-    android:paddingTop="100px"
+    android:paddingTop="40dp"
     tools:context=".ui.MainActivity">
 
     <!-- Thanh tiêu đề -->
@@ -132,8 +132,9 @@
             android:layout_gravity="end|bottom"
             android:layout_margin="16dp"
             android:contentDescription="Menu"
-            android:src="@drawable/icon_menu"
-            app:backgroundTint="#3F51B5" />
+            android:src="@drawable/menu_opiton"
+            app:backgroundTint="#3F51B5"
+            app:tint="@null"/>
 
         <!-- Floating Button 1 -->
         <com.google.android.material.floatingactionbutton.FloatingActionButton

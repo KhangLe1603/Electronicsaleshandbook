@@ -16,6 +16,20 @@ import java.util.List;
 
 public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductViewHolder> {
     private List<Product> products = new ArrayList<>();
+    private OnProductClickListener listener;
+
+    public interface OnProductClickListener {
+        void onProductClick(Product product);
+    }
+
+    public void setOnProductClickListener(OnProductClickListener listener) {
+        this.listener = listener;
+    }
+
+    public void setProducts(List<Product> products) {
+        this.products = products != null ? products : new ArrayList<>();
+        notifyDataSetChanged();
+    }
 
     @NonNull
     @Override
@@ -31,18 +45,15 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         holder.productName.setText(product.getName());
         holder.productPrice.setText(product.getPrice());
         holder.viewDetails.setOnClickListener(v -> {
-            // Xử lý sự kiện xem chi tiết
+            if (listener != null) {
+                listener.onProductClick(product); // Gọi listener để mở ProductDetail
+            }
         });
     }
 
     @Override
     public int getItemCount() {
         return products.size();
-    }
-
-    public void setProducts(List<Product> products) {
-        this.products = products;
-        notifyDataSetChanged();
     }
 
     static class ProductViewHolder extends RecyclerView.ViewHolder {

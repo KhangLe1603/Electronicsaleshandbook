@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.content.Intent;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
@@ -16,6 +17,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
@@ -38,6 +40,8 @@ public class ProductsView extends AppCompatActivity {
         adapter = new ProductAdapter();
         recyclerView.setAdapter(adapter);
         SwipeRefreshLayout swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
         EditText searchBar = findViewById(R.id.searchBar);
         ImageButton searchButton = findViewById(R.id.imageButtonSearch);
 
@@ -63,6 +67,11 @@ public class ProductsView extends AppCompatActivity {
             swipeRefreshLayout.setRefreshing(false);
         });
 
+        adapter.setOnProductClickListener(product -> {
+            Intent intent = new Intent(ProductsView.this, ProductDetail.class);
+            intent.putExtra("PRODUCT", product);
+            startActivity(intent);
+        });
         searchButton.setOnClickListener(v -> {
             String query = searchBar.getText().toString().trim();
             viewModel.setSearchQuery(query); // Cập nhật từ khóa tìm kiếm

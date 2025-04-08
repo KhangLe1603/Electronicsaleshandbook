@@ -27,7 +27,7 @@ import java.util.List;
 
 public class SheetRepository {
     private static final String SPREADSHEET_ID = "1T0vRbdFnjTUTKkgcpbSuvjNnbG9eD49j_xjlknWtj_A";
-    private static final String RANGE = "Sheet1!B2:E"; // Lấy từ B2 đến E
+    private static final String RANGE = "Sheet1!B2:F"; // Lấy từ B2 đến E
 
     private final Sheets service;
     private final MutableLiveData<List<Product>> productsLiveData = new MutableLiveData<>();
@@ -71,8 +71,11 @@ public class SheetRepository {
                 if (values != null) {
                     for (List<Object> row : values) {
                         String name = row.size() > 0 ? row.get(0).toString() : "";
-                        String price = row.size() > 3 ? row.get(3).toString() : "";
-                        products.add(new Product(name, price));
+                        String description = row.size() > 1 ? row.get(1).toString() : "";
+                        String unitPrice = row.size() > 2 ? row.get(2).toString() : "";
+                        String sellingPrice = row.size() > 3 ? row.get(3).toString() : "";
+                        String unit = row.size() > 4 ? row.get(4).toString() : "";
+                        products.add(new Product(name, description, unitPrice, sellingPrice, unit));
                     }
                 }
                 productsLiveData.postValue(products);

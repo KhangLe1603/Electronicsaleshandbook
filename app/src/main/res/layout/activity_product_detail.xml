@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F1F1FF"
+    android:paddingTop="40dp"
+    tools:context=".ui.ProductDetail">
+
+    <!-- Toolbar -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="#4C4CF1"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/back"
+                android:background="@android:color/transparent"
+                android:contentDescription="Back"
+                app:tint="@android:color/white" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="DANH SÁCH CHI TIẾT SẢN PHẨM"
+                android:textColor="@android:color/white"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:textSize="16sp" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/account"
+                android:contentDescription="User Icon"
+                app:tint="@android:color/white"
+                android:layout_marginEnd="8dp"/>
+        </LinearLayout>
+    </androidx.appcompat.widget.Toolbar>
+
+    <!-- Form -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Tên sản phẩm -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tên Sản Phẩm:"
+                android:textStyle="bold"/>
+
+            <EditText
+                android:id="@+id/edtTenSanPham"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@android:drawable/editbox_background"
+                android:hint="Tên sản phẩm"
+                android:padding="8dp"
+                android:focusable="false"
+                android:clickable="false"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Đơn giá (VND):"
+                android:textStyle="bold"/>
+            <EditText
+                android:id="@+id/edtDonGia"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:inputType="number"
+                android:hint="Đơn giá"
+                android:background="@android:drawable/editbox_background"
+                android:padding="8dp"
+                android:focusable="false"
+                android:clickable="false"/>
+
+            <!-- Giá bán -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Giá bán (VND):"
+                android:textStyle="bold"/>
+            <EditText
+                android:id="@+id/edtGiaBan"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:inputType="number"
+                android:hint="Giá bán"
+                android:background="@android:drawable/editbox_background"
+                android:padding="8dp"
+                android:focusable="false"
+                android:clickable="false"/>
+
+            <!-- Đơn vị tính -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Đơn vị tính:"
+                android:textStyle="bold"/>
+            <EditText
+                android:id="@+id/edtDonViTinh"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:hint="Đơn vị tính"
+                android:background="@android:drawable/editbox_background"
+                android:padding="8dp"
+                android:focusable="false"
+                android:clickable="false"/>
+
+            <!-- Mô tả -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mô tả:"
+                android:textStyle="bold"/>
+            <EditText
+                android:id="@+id/edtMoTa"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Mô tả"
+                android:background="@android:drawable/editbox_background"
+                android:padding="8dp"
+                android:minLines="3"
+                android:gravity="top"
+                android:inputType="textMultiLine"
+                android:focusable="false"
+                android:clickable="false"/>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>
