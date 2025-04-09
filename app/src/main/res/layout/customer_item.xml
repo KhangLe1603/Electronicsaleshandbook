@@ -1,75 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="horizontal"
-    android:padding="16dp"
-    android:gravity="center_vertical">
+    android:padding="10dp"
+    android:background="@drawable/rounded_background"
+    android:elevation="2dp"
+    android:layout_marginBottom="8dp">
 
+    <!-- Avatar -->
     <ImageView
         android:id="@+id/ivAvatar"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="80dp"
+        android:layout_height="89dp"
+        android:layout_gravity="top"
         android:scaleType="centerCrop"
-        android:src="@drawable/ic_default_avatar"
-        android:visibility="gone" />
+        android:src="@drawable/account" />
 
+    <!-- Nội dung thông tin khách hàng -->
     <LinearLayout
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="95dp"
+        android:layout_marginStart="12dp"
         android:layout_weight="1"
-        android:orientation="vertical"
-        android:layout_marginStart="16dp">
+        android:gravity="start"
+        android:orientation="vertical">
 
+        <!-- Tên khách hàng -->
         <TextView
             android:id="@+id/tvCustomerName"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:text="Nguyễn Văn A"
+            android:textColor="#000000"
             android:textSize="18sp"
-            android:textStyle="bold"
-            tools:text="Nguyễn Văn A" />
+            android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/tvPhoneNumber"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="14sp"
-            android:textColor="@android:color/darker_gray"
-            tools:text="0901234567" />
+        <!-- Địa chỉ -->
 
+        <!-- Dòng dưới: Xem chi tiết (trái) và SĐT (phải) -->
         <TextView
             android:id="@+id/tvAddress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="Hậu Giang"
+            android:textColor="@android:color/darker_gray"
+            android:textSize="14sp" />
+
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="14sp"
-            android:textColor="@android:color/darker_gray"
-            tools:text="Hậu Giang" />
+            android:layout_marginTop="12dp">
 
+            <TextView
+                android:id="@+id/viewDetails"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:text="Xem chi tiết >"
+                android:textColor="#3F51B5"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/tvPhoneNumber"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:text="0901234567"
+                android:textColor="@android:color/darker_gray"
+                android:textSize="14sp" />
+        </RelativeLayout>
     </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <ImageView
-            android:id="@+id/ivEdit"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:layout_marginStart="8dp"
-            android:src="@android:drawable/ic_menu_edit"
-            app:tint="@android:color/darker_gray" />
-
-        <ImageView
-            android:id="@+id/ivDelete"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:layout_marginStart="8dp"
-            android:src="@android:drawable/ic_menu_delete"
-            app:tint="@android:color/darker_gray" />
-
-    </LinearLayout>
-
 </LinearLayout>

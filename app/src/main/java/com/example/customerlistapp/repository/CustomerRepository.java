@@ -9,7 +9,7 @@ import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.SheetsScopes;
 import com.google.api.services.sheets.v4.model.ValueRange;
-import org.apache.log4j.Logger;
+
 import com.google.api.client.json.jackson2.JacksonFactory;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -26,7 +26,6 @@ public class CustomerRepository {
 
     private final Sheets service;
     private final MutableLiveData<List<Customer>> customersLiveData = new MutableLiveData<>();
-    private static final Logger logger = Logger.getLogger(CustomerRepository.class);
 
     public CustomerRepository(Context context) throws IOException, GeneralSecurityException {
         try {
@@ -51,7 +50,6 @@ public class CustomerRepository {
 
             fetchCustomers();
         } catch (IOException e) {
-            logger.error("Lỗi khi tạo dịch vụ Google Sheets", e);
             throw new IOException("Không tìm thấy file tài khoản dịch vụ trong assets", e);
         }
     }
@@ -84,7 +82,6 @@ public class CustomerRepository {
                 }
                 customersLiveData.postValue(customers);
             } catch (IOException e) {
-                logger.error("Lỗi khi lấy danh sách khách hàng từ Google Sheets", e);
                 customersLiveData.postValue(new ArrayList<>());
             }
         }).start();

@@ -8,8 +8,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.customerlistapp.R;
 import com.example.customerlistapp.models.Customer;
+import com.example.electronicsaleshandbook.R;
 
 import java.util.ArrayList;
 import java.util.List;

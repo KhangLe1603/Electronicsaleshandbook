@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:paddingTop="40dp"
-    tools:context=".ui.CustomerList">
+    tools:context="com.example.customerlistapp.ui.CustomerList">
 
     <!-- Tiêu đề -->
     <TextView
@@ -98,11 +98,12 @@
         </com.google.android.material.textfield.TextInputLayout>
     </LinearLayout>
 
-    <!-- FrameLayout chứa RecyclerView và FABs -->
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:paddingLeft="10dp"
+        android:paddingEnd="10dp">
 
         <!-- SwipeRefreshLayout và RecyclerView -->
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -113,6 +114,8 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerView"
                 android:layout_width="match_parent"
+                android:contentDescription="Danh sách khách hàng"
+                android:padding="8dp"
                 android:layout_height="match_parent" />
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
@@ -134,6 +137,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end|bottom"
+            android:layout_margin="16dp"
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="96dp"
             android:contentDescription="Lựa chọn 1"
@@ -147,10 +151,39 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end|bottom"
+            android:layout_margin="16dp"
             android:layout_marginEnd="16dp"
-            android:layout_marginBottom="152dp"
+            android:layout_marginBottom="176dp"
             android:contentDescription="Lựa chọn 2"
-            android:src="@android:drawable/ic_input_add"
+            android:src="@drawable/shop"
+            android:visibility="gone"
+            app:backgroundTint="#FF9800" />
+
+        <!-- Floating Button 3 - Thêm sản phẩm -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabAddProduct"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|bottom"
+            android:layout_margin="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="256dp"
+            android:contentDescription="Thêm sản phẩm"
+            android:src="@drawable/add_product"
+            android:visibility="gone"
+            app:backgroundTint="#4CAF50" />
+
+        <!-- Floating Button 4 - Thêm khách hàng -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabAddCustomer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|bottom"
+            android:layout_margin="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="256dp"
+            android:contentDescription="Thêm khách hàng"
+            android:src="@drawable/add_customer"
             android:visibility="gone"
             app:backgroundTint="#4CAF50" />
     </FrameLayout>
