@@ -32,7 +32,8 @@ public class CustomerAdapter extends RecyclerView.Adapter<CustomerAdapter.Custom
     @Override
     public void onBindViewHolder(@NonNull CustomerViewHolder holder, int position) {
         Customer customer = customers.get(position);
-        holder.nameTextView.setText(customer.getName());
+        String fullName = customer.getFullName().trim().isEmpty() ? "N/A" : customer.getFullName().trim();
+        holder.nameTextView.setText(fullName);
         holder.addressTextView.setText(customer.getAddress());
         holder.phoneTextView.setText(customer.getPhone());
     }

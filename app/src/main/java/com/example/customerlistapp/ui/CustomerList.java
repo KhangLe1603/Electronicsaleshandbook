@@ -1,17 +1,13 @@
 package com.example.customerlistapp.ui;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ProgressBar;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -30,7 +26,7 @@ public class CustomerList extends AppCompatActivity {
     private CustomerViewModel viewModel;
     private CustomerAdapter adapter;
     private SwipeRefreshLayout swipeRefreshLayout;
-    private FloatingActionButton fabFilter, fabOption1, fabOption2;
+    private FloatingActionButton fabFilter, fabOption_CustomerList, fabOption_ProductList, fabOption_AddProduct, fabOption_AddCustomer;
     private MaterialAutoCompleteTextView sortDropdown;
     private boolean isFabMenuOpen = false;
     private boolean expectingChange = false;
@@ -48,25 +44,13 @@ public class CustomerList extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
 
 
-        // Khởi tạo Search EditText
-        EditText etSearch = findViewById(R.id.etSearch);
-        etSearch.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                viewModel.setSearchQuery(s.toString().trim());
-            }
-        });
+        EditText searchBar = findViewById(R.id.searchBar);
 
         // Khởi tạo Filter Button
-        Button btnFilter = findViewById(R.id.btnFilter);
+        ImageButton btnFilter = findViewById(R.id.imageButtonSearch);
         btnFilter.setOnClickListener(v -> {
-            Toast.makeText(this, "Chức năng lọc trạng thái chưa được triển khai", Toast.LENGTH_SHORT).show();
+            String query = searchBar.getText().toString().trim();
+            viewModel.setSearchQuery(query);
         });
 
         // Khởi tạo Dropdown sắp xếp
@@ -81,8 +65,10 @@ public class CustomerList extends AppCompatActivity {
 
         // Khởi tạo FABs
         fabFilter = findViewById(R.id.fabFilter);
-        fabOption1 = findViewById(R.id.fabOption1);
-        fabOption2 = findViewById(R.id.fabOption2);
+        fabOption_CustomerList = findViewById(R.id.fabOption1);
+        fabOption_ProductList = findViewById(R.id.fabOption2);
+        fabOption_AddProduct = findViewById(R.id.fabAddProduct);
+        fabOption_AddCustomer = findViewById(R.id.fabAddCustomer);
 
         setupFabMenu();
 
@@ -127,9 +113,8 @@ public class CustomerList extends AppCompatActivity {
         if (swipeRefreshLayout != null) {
             swipeRefreshLayout.setOnRefreshListener(() -> {
                 viewModel.refreshCustomers();
-                etSearch.setText("");
+                searchBar.setText("");
                 sortDropdown.setText(sortAdapter.getItem(0), false);
-                expectingChange = true; // Đặt cờ khi làm mới
             });
         }
 
@@ -144,33 +129,42 @@ public class CustomerList extends AppCompatActivity {
         fabFilter.setOnClickListener(v -> {
             if (!isFabMenuOpen) {
                 // Mở menu
-                fabOption1.setVisibility(View.VISIBLE);
-                fabOption2.setVisibility(View.VISIBLE);
-                fabOption1.animate().translationY(-dpToPx(80)).setDuration(200).start();
-                fabOption2.animate().translationY(-dpToPx(160)).setDuration(200).start();
+                fabOption_CustomerList.setVisibility(View.VISIBLE);
+                fabOption_ProductList.setVisibility(View.VISIBLE);
+                fabOption_AddProduct.setVisibility(View.VISIBLE);
+                fabOption_AddCustomer.setVisibility(View.VISIBLE);
+                fabOption_CustomerList.animate().translationY(-dpToPx(80)).setDuration(200).start();
+                fabOption_ProductList.animate().translationY(-dpToPx(160)).setDuration(200).start();
+                fabOption_AddProduct.animate().translationY(-dpToPx(240)).setDuration(200).start();
+                fabOption_AddCustomer.animate().translationY(-dpToPx(320)).setDuration(200).start();
                 fabFilter.setImageResource(R.drawable.close); // Cần drawable "close"
                 fabFilter.setBackgroundTintList(getResources().getColorStateList(R.color.fab_open_color, getTheme()));
             } else {
                 // Đóng menu
-                fabOption1.animate().translationY(0).setDuration(200).start();
-                fabOption2.animate().translationY(0).setDuration(200).start();
-                fabOption1.setVisibility(View.GONE);
-                fabOption2.setVisibility(View.GONE);
+                fabOption_CustomerList.animate().translationY(0).setDuration(200).start();
+                fabOption_ProductList.animate().translationY(0).setDuration(200).start();
+                fabOption_AddProduct.animate().translationY(0).setDuration(200).start();
+                fabOption_AddCustomer.animate().translationY(0).setDuration(200).start();
+                fabOption_CustomerList.setVisibility(View.GONE);
+                fabOption_ProductList.setVisibility(View.GONE);
+                fabOption_AddProduct.setVisibility(View.GONE);
+                fabOption_AddCustomer.setVisibility(View.GONE);
                 fabFilter.setImageResource(R.drawable.menu_opiton); // Trở lại icon ban đầu
                 fabFilter.setBackgroundTintList(getResources().getColorStateList(R.color.fab_close_color, getTheme()));
             }
             isFabMenuOpen = !isFabMenuOpen;
         });
 
-        fabOption1.setOnClickListener(v -> {
-            Toast.makeText(this, "Tùy chọn 1 được chọn", Toast.LENGTH_SHORT).show();
-            setupFabMenu(); // Đóng menu sau khi chọn
+        fabOption_ProductList.setOnClickListener(v -> {
+
         });
 
-        fabOption2.setOnClickListener(v -> {
-            Toast.makeText(this, "Thêm khách hàng", Toast.LENGTH_SHORT).show();
-            setupFabMenu(); // Đóng menu sau khi chọn
-            // Thêm logic thêm khách hàng ở đây
+        fabOption_AddProduct.setOnClickListener(v -> {
+
+        });
+
+        fabOption_AddCustomer.setOnClickListener(v -> {
+
         });
     }
 }

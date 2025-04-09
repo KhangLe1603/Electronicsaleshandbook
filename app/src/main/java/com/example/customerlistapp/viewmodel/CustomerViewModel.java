@@ -44,32 +44,35 @@ public class CustomerViewModel extends ViewModel {
         return Transformations.switchMap(searchQuery, query ->
                 Transformations.switchMap(sortOption, sort ->
                         Transformations.map(allCustomers, customers -> {
-                            Log.d("CustomerViewModel", "Filtering customers, size: " + (customers != null ? customers.size() : 0));
                             if (customers == null) {
                                 return null; // Trả về null nếu không có dữ liệu
                             }
-
                             // Khai báo rõ ràng filteredList là List<Customer>
                             List<Customer> filteredList = customers;
-
                             // Lọc theo từ khóa tìm kiếm (nếu có)
                             if (query != null && !query.isEmpty()) {
                                 filteredList = filteredList.stream()
-                                        .filter(customer -> customer.getName().toLowerCase().contains(query.toLowerCase()) ||
-                                                customer.getAddress().toLowerCase().contains(query.toLowerCase()) ||
-                                                customer.getPhone().toLowerCase().contains(query.toLowerCase()))
+                                        .filter(customer ->
+                                                (customer.getFirstName() != null && customer.getFirstName().toLowerCase().contains(query.toLowerCase())) ||
+                                                        (customer.getSurname() != null && customer.getSurname().toLowerCase().contains(query.toLowerCase())) ||
+                                                        (customer.getAddress() != null && customer.getAddress().toLowerCase().contains(query.toLowerCase())) ||
+                                                        (customer.getPhone() != null && customer.getPhone().toLowerCase().contains(query.toLowerCase())))
                                         .collect(Collectors.toList());
                             }
 
                             // Sắp xếp theo tiêu chí
                             switch (sort) {
-                                case 0: // Tên A-Z
+                                case 0: // Tên A-Z (dùng firstName)
                                     return filteredList.stream()
-                                            .sorted(Comparator.comparing(Customer::getName))
+                                            .sorted(Comparator.comparing(Customer::getFirstName, Comparator.nullsLast(String::compareTo)))
                                             .collect(Collectors.toList());
-                                case 1: // Tên Z-A
+                                case 1: // Tên Z-A (dùng firstName)
                                     return filteredList.stream()
-                                            .sorted(Comparator.comparing(Customer::getName, Comparator.reverseOrder()))
+                                            .sorted(Comparator.comparing(Customer::getFirstName, Comparator.nullsLast(String::compareTo).reversed()))
+                                            .collect(Collectors.toList());
+                                case 2: // Theo địa chỉ (A-Z)
+                                    return filteredList.stream()
+                                            .sorted(Comparator.comparing(Customer::getAddress, Comparator.nullsLast(String::compareTo)))
                                             .collect(Collectors.toList());
                                 default:
                                     return filteredList; // Không sắp xếp
