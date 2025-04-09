@@ -1,5 +1,6 @@
 package com.example.customerlistapp.ui;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -43,6 +44,12 @@ public class CustomerList extends AppCompatActivity {
         adapter = new CustomerAdapter();
         recyclerView.setAdapter(adapter);
 
+        // Gắn listener cho adapter để mở Customer_detail
+        adapter.setOnCustomerClickListener(customer -> {
+            Intent intent = new Intent(CustomerList.this, Customer_detail.class);
+            intent.putExtra("CUSTOMER", customer);
+            startActivityForResult(intent, 2);
+        });
 
         EditText searchBar = findViewById(R.id.searchBar);
 
@@ -85,24 +92,20 @@ public class CustomerList extends AppCompatActivity {
         // Quan sát danh sách khách hàng
         viewModel.getFilteredCustomers().observe(this, customers -> {
             int currentSize = customers != null ? customers.size() : 0;
+            Log.d("CustomerList", "Customers updated, size: " + currentSize);
             adapter.setCustomers(customers);
-
             if (customers == null || customers.isEmpty()) {
                 Toast.makeText(this, "Không có khách hàng nào", Toast.LENGTH_SHORT).show();
             }
-
             if (swipeRefreshLayout != null && swipeRefreshLayout.isRefreshing()) {
                 swipeRefreshLayout.setRefreshing(false);
             }
-
-            // Kiểm tra nếu đang chờ thay đổi và kích thước không tăng
             if (expectingChange && lastCustomerSize != -1 && currentSize <= lastCustomerSize) {
                 new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    Log.d("CustomerList", "Retrying refresh due to unchanged size");
                     viewModel.refreshCustomers();
-                }, 2000); // Thử lại sau 2 giây
+                }, 3000); // Tăng lên 3 giây
             } else {
-                expectingChange = false; // Reset cờ sau khi cập nhật thành công
+                expectingChange = false;
             }
             lastCustomerSize = currentSize;
         });
@@ -164,7 +167,21 @@ public class CustomerList extends AppCompatActivity {
         });
 
         fabOption_AddCustomer.setOnClickListener(v -> {
-
+            Intent intent = new Intent(CustomerList.this, AddCustomer.class);
+            startActivityForResult(intent, 1);
         });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK && (requestCode == 1 || requestCode == 2)) {
+            if (data != null && data.getBooleanExtra("REFRESH", false)) {
+                expectingChange = true;
+                SwipeRefreshLayout swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
+                swipeRefreshLayout.setRefreshing(true); // Hiển thị loading
+                viewModel.refreshCustomers(); // Gọi làm mới
+            }
+        }
     }
 }

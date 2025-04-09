@@ -15,6 +15,9 @@
         android:theme="@style/Theme.MyTheme"
         tools:targetApi="31">
         <activity
+            android:name="com.example.customerlistapp.ui.AddCustomer"
+            android:exported="false" />
+        <activity
             android:name="com.example.customerlistapp.ui.CustomerList"
             android:exported="true">
             <intent-filter>
@@ -23,6 +26,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name="com.example.customerlistapp.ui.Customer_detail"
+            android:exported="true"></activity>
     </application>
 
 </manifest>

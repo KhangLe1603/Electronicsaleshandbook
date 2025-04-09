@@ -131,7 +131,9 @@
             android:contentDescription="Menu"
             android:src="@drawable/menu_opiton"
             app:backgroundTint="#3F51B5"
-            app:tint="@null"/>
+            app:tint="@null"
+            style="@style/Widget.MaterialComponents.FloatingActionButton"
+            />
 
         <!-- Floating Button 1 -->
         <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -145,7 +147,9 @@
             android:contentDescription="Lựa chọn 1"
             android:src="@drawable/account"
             android:visibility="gone"
-            app:backgroundTint="#FF4081" />
+            app:backgroundTint="#FF4081"
+            style="@style/Widget.MaterialComponents.FloatingActionButton"
+            />
 
         <!-- Floating Button 2 -->
         <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -159,7 +163,9 @@
             android:contentDescription="Lựa chọn 2"
             android:src="@drawable/shop"
             android:visibility="gone"
-            app:backgroundTint="#FF9800" />
+            app:backgroundTint="#FF9800"
+            style="@style/Widget.MaterialComponents.FloatingActionButton"
+            />
 
         <!-- Floating Button 3 - Thêm sản phẩm -->
         <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -173,7 +179,9 @@
             android:contentDescription="Thêm sản phẩm"
             android:src="@drawable/add_product"
             android:visibility="gone"
-            app:backgroundTint="#4CAF50" />
+            app:backgroundTint="#4CAF50"
+            style="@style/Widget.MaterialComponents.FloatingActionButton"
+            />
 
         <!-- Floating Button 4 - Thêm khách hàng -->
         <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -187,7 +195,9 @@
             android:contentDescription="Thêm khách hàng"
             android:src="@drawable/add_customer"
             android:visibility="gone"
-            app:backgroundTint="#4CAF50" />
+            app:backgroundTint="#4CAF50"
+            style="@style/Widget.MaterialComponents.FloatingActionButton"
+            />
     </FrameLayout>
 
 </LinearLayout>

@@ -10,9 +10,17 @@ import androidx.lifecycle.ViewModel;
 
 import com.example.customerlistapp.models.Customer;
 import com.example.customerlistapp.repository.CustomerRepository;
+import com.google.api.services.sheets.v4.Sheets;
+import com.google.api.services.sheets.v4.model.BatchUpdateSpreadsheetRequest;
+import com.google.api.services.sheets.v4.model.DeleteDimensionRequest;
+import com.google.api.services.sheets.v4.model.DimensionRange;
+import com.google.api.services.sheets.v4.model.Request;
+import com.google.api.services.sheets.v4.model.ValueRange;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,6 +30,8 @@ public class CustomerViewModel extends ViewModel {
     private final LiveData<List<Customer>> allCustomers;
     private final MutableLiveData<String> searchQuery = new MutableLiveData<>("");
     private final MutableLiveData<Integer> sortOption = new MutableLiveData<>(0);
+    private long lastRefreshTime = 0;
+    private static final long MIN_REFRESH_INTERVAL = 2000;
 
     public CustomerViewModel(Context context) {
         try {
@@ -81,13 +91,103 @@ public class CustomerViewModel extends ViewModel {
     }
 
     public void refreshCustomers() {
-        Log.d("CustomerViewModel", "Refreshing customers...");
-        searchQuery.postValue(""); // Reset tìm kiếm
-        sortOption.postValue(0);   // Reset sắp xếp về mặc định (A-Z)
-        repository.refreshCustomers();
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastRefreshTime >= MIN_REFRESH_INTERVAL) {
+            searchQuery.postValue("");
+            sortOption.postValue(0);
+            repository.refreshCustomers();
+            lastRefreshTime = currentTime;
+        } else {
+            Log.w("CustomerViewModel", "Refresh skipped to avoid rate limit");
+        }
     }
 
-    public LiveData<List<Customer>> getAllCustomers() {
-        return allCustomers;
+
+    public void addCustomer(String surname, String firstName, String address, String phone,
+                            String email, String birthday, String gender) {
+        new Thread(() -> {
+            try {
+                // Lấy dữ liệu hiện tại để tìm dòng trống cuối cùng từ cột B
+                ValueRange existingData = repository.getSheetsService().spreadsheets().values()
+                        .get("1T0vRbdFnjTUTKkgcpbSuvjNnbG9eD49j_xjlknWtj_A", "KhachHang!B2:H")
+                        .execute();
+                int lastRow = existingData.getValues() != null ? existingData.getValues().size() + 1 : 1; // Dòng cuối + 1
+
+                // Chỉ định phạm vi chính xác: B<row>:H<row>
+                String range = "KhachHang!B" + (lastRow + 1) + ":H" + (lastRow + 1);
+
+                // Chuẩn bị dữ liệu với thứ tự đúng: B (surname), C (firstName), D (address), E (phone), F (email), G (birthday), H (gender)
+                ValueRange body = new ValueRange()
+                        .setValues(Arrays.asList(
+                                Arrays.asList(surname, firstName, address, phone, email, birthday, gender)
+                        ));
+
+                // Ghi dữ liệu vào phạm vi đã chỉ định
+                repository.getSheetsService().spreadsheets().values()
+                        .update("1T0vRbdFnjTUTKkgcpbSuvjNnbG9eD49j_xjlknWtj_A", range, body)
+                        .setValueInputOption("RAW")
+                        .execute();
+
+                // Chờ 1 giây để Google Sheets cập nhật trước khi làm mới
+                Thread.sleep(3000);
+                refreshCustomers();
+            } catch (IOException e) {
+                Log.e("CustomerViewModel", "Error adding customer", e);
+            } catch (InterruptedException e) {
+                Log.w("CustomerViewModel", "Thread interrupted while waiting to refresh", e);
+                Thread.currentThread().interrupt(); // Đặt lại trạng thái interrupt
+                refreshCustomers(); // Vẫn làm mới dù bị gián đoạn
+            }
+        }).start();
+    }
+
+    public void updateCustomer(int sheetRowIndex, String surname, String firstName, String address,
+                               String phone, String email, String birthday, String gender) {
+        new Thread(() -> {
+            try {
+                String range = "KhachHang!B" + sheetRowIndex + ":H" + sheetRowIndex;
+                ValueRange body = new ValueRange()
+                        .setValues(Arrays.asList(
+                                Arrays.asList(surname, firstName, address, phone, email, birthday, gender)
+                        ));
+
+                repository.getSheetsService().spreadsheets().values()
+                        .update("1T0vRbdFnjTUTKkgcpbSuvjNnbG9eD49j_xjlknWtj_A", range, body)
+                        .setValueInputOption("RAW")
+                        .execute();
+
+                refreshCustomers();
+            } catch (IOException e) {
+                Log.e("CustomerViewModel", "Error updating customer", e);
+            }
+        }).start();
+    }
+
+    public void deleteCustomer(int sheetRowIndex) {
+        new Thread(() -> {
+            try {
+                int adjustedRowIndex = sheetRowIndex - 1; // Chỉ số dòng bắt đầu từ 0
+                DeleteDimensionRequest deleteRequest = new DeleteDimensionRequest()
+                        .setRange(new DimensionRange()
+                                .setSheetId(341227420)
+                                .setDimension("ROWS")
+                                .setStartIndex(adjustedRowIndex)
+                                .setEndIndex(adjustedRowIndex + 1)
+                        );
+
+                BatchUpdateSpreadsheetRequest batchRequest = new BatchUpdateSpreadsheetRequest()
+                        .setRequests(Collections.singletonList(
+                                new Request().setDeleteDimension(deleteRequest)
+                        ));
+
+                repository.getSheetsService().spreadsheets()
+                        .batchUpdate("1T0vRbdFnjTUTKkgcpbSuvjNnbG9eD49j_xjlknWtj_A", batchRequest)
+                        .execute();
+
+                refreshCustomers();
+            } catch (IOException e) {
+                Log.e("CustomerViewModel", "Error deleting customer", e);
+            }
+        }).start();
     }
 }
