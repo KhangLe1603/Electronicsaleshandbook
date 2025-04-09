@@ -10,10 +10,10 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.ThucTap"
+        android:theme="@style/Theme.MyTheme"
         tools:targetApi="31">
         <activity
-            android:name=".Customer_detail"
+            android:name="com.example.thuctap.Customer_detail"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
