@@ -14,11 +14,9 @@ pluginManagement {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
-        google() // Thêm google() ở đây
         mavenCentral()
     }
 }
 
-rootProject.name = "CustomerListApp"
 include(":app")
  

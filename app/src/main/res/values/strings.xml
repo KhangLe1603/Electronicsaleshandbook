@@ -1,9 +1,3 @@
 <resources>
-    <string name="app_name">CustomerListApp</string>
-    <string-array name="sort_options">
-        <item>Tên A-Z</item>
-        <item>Tên Z-A</item>
-        <item>Giá tăng dần</item>
-        <item>Giá giảm dần</item>
-    </string-array>
+    <string name="app_name">Electronic sales handbook</string>
 </resources>
