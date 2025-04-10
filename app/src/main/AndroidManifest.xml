@@ -32,6 +32,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name="com.example.customerlistapp.ui.Customer_detail"
+            android:exported="true"></activity>
     </application>
 
 </manifest>
