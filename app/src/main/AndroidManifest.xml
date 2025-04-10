@@ -33,8 +33,17 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.example.customerlistapp.ui.Customer_detail"
-            android:exported="true"></activity>
+            android:name=".ui.Customer_detail"
+            android:exported="true">
+        </activity>
+        <activity
+            android:name=".ui.CustomerList"
+            android:exported="true">
+        </activity>
+        <activity
+            android:name=".ui.AddCustomer"
+            android:exported="true">
+        </activity>
     </application>
 
 </manifest>

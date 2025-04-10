@@ -1,4 +1,4 @@
-package com.example.customerlistapp.ui;
+package com.example.electronicsaleshandbook.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,12 +10,11 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.widget.Toolbar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.customerlistapp.models.Customer;
-import com.example.customerlistapp.viewmodel.CustomerViewModel;
+import com.example.electronicsaleshandbook.model.Customer;
+import com.example.electronicsaleshandbook.viewmodel.CustomerViewModel;
 import com.example.electronicsaleshandbook.R;
 
 public class Customer_detail extends AppCompatActivity {

@@ -1,4 +1,4 @@
-package com.example.customerlistapp.repository;
+package com.example.electronicsaleshandbook.repository;
 
 import android.content.Context;
 import android.util.Log;
@@ -6,7 +6,7 @@ import android.util.Log;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import com.example.customerlistapp.models.Customer;
+import com.example.electronicsaleshandbook.model.Customer;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
@@ -26,18 +26,21 @@ import java.util.List;
 public class CustomerRepository {
     private static final String SPREADSHEET_ID = "1T0vRbdFnjTUTKkgcpbSuvjNnbG9eD49j_xjlknWtj_A";
     private static final String RANGE = "KhachHang!B2:H"; // Đọc từ B2 tới H
+    private static final long MIN_REFRESH_INTERVAL = 2000; // Giới hạn 2 giây giữa các request
 
     private final Sheets service;
     private final MutableLiveData<List<Customer>> customersLiveData = new MutableLiveData<>();
+    private List<Customer> cachedCustomers = null; // Cache dữ liệu khách hàng
+    private long lastRefreshTime = 0;
+    private boolean isRefreshing = false;
+    private int requestCount = 0; // Đếm số request
 
     public CustomerRepository(Context context) throws IOException, GeneralSecurityException {
         try {
             JacksonFactory jsonFactory = JacksonFactory.getDefaultInstance();
-
             GoogleCredentials credentials = GoogleCredentials.fromStream(
                             context.getAssets().open("service_account.json"))
                     .createScoped(Collections.singleton(SheetsScopes.SPREADSHEETS));
-
             HttpCredentialsAdapter requestInitializer = new HttpCredentialsAdapter(credentials);
 
             service = new Sheets.Builder(
@@ -47,7 +50,7 @@ public class CustomerRepository {
                     .setApplicationName("Customer List App")
                     .build();
 
-            fetchCustomersWithBackoff(0, 5); // Gọi với backoff ngay khi khởi tạo
+            fetchCustomersWithBackoff(0, 5); // Gọi lần đầu với backoff
         } catch (FileNotFoundException e) {
             throw new IOException("Service account file not found in assets", e);
         }
@@ -58,7 +61,22 @@ public class CustomerRepository {
     }
 
     public void refreshCustomers() {
-        fetchCustomersWithBackoff(0, 5); // Gọi lại với backoff khi làm mới
+        synchronized (this) {
+            long currentTime = System.currentTimeMillis();
+            if (isRefreshing || (currentTime - lastRefreshTime < MIN_REFRESH_INTERVAL)) {
+                Log.d("CustomerRepository", "Skipping refresh, too soon or already refreshing");
+                if (cachedCustomers != null) {
+                    customersLiveData.postValue(cachedCustomers); // Trả về cache nếu có
+                }
+                return;
+            }
+            isRefreshing = true;
+            lastRefreshTime = currentTime;
+        }
+        fetchCustomersWithBackoff(0, 5);
+        synchronized (this) {
+            isRefreshing = false; // Reset trạng thái sau khi hoàn thành
+        }
     }
 
     public Sheets getSheetsService() {
@@ -68,11 +86,14 @@ public class CustomerRepository {
     private void fetchCustomersWithBackoff(int attempt, int maxAttempts) {
         new Thread(() -> {
             try {
+                requestCount++;
+                Log.d("CustomerRepository", "Sending request #" + requestCount);
                 ValueRange response = service.spreadsheets().values()
                         .get(SPREADSHEET_ID, RANGE)
                         .execute();
                 List<Customer> customers = new ArrayList<>();
                 List<List<Object>> values = response.getValues();
+                Log.d("CustomerRepository", "Raw response values: " + (values != null ? values.toString() : "null"));
                 if (values != null && !values.isEmpty()) {
                     for (int i = 0; i < values.size(); i++) {
                         List<Object> row = values.get(i);
@@ -88,38 +109,27 @@ public class CustomerRepository {
                         customers.add(customer);
                     }
                 }
+                cachedCustomers = customers; // Cập nhật cache
                 Log.d("CustomerRepository", "Fetched customers, size: " + customers.size());
                 customersLiveData.postValue(customers);
             } catch (GoogleJsonResponseException e) {
-                Log.e("CustomerRepository", "Google API error: " + e.getStatusCode(), e);
                 if (e.getStatusCode() == 429 && attempt < maxAttempts) {
                     long delay = (long) Math.pow(2, attempt) * 1000;
-                    Log.w("CustomerRepository", "Quota exceeded, retrying in " + delay + "ms");
+                    Log.w("CustomerRepository", "Quota exceeded, retrying in " + delay + "ms (attempt " + (attempt + 1) + "/" + maxAttempts + ")");
                     try {
                         Thread.sleep(delay);
                         fetchCustomersWithBackoff(attempt + 1, maxAttempts);
                     } catch (InterruptedException ie) {
                         Log.e("CustomerRepository", "Interrupted during backoff", ie);
-                        customersLiveData.postValue(customersLiveData.getValue());
+                        if (cachedCustomers != null) customersLiveData.postValue(cachedCustomers);
                     }
                 } else {
-                    customersLiveData.postValue(customersLiveData.getValue());
+                    Log.e("CustomerRepository", "Error fetching customers: " + e.getStatusCode(), e);
+                    if (cachedCustomers != null) customersLiveData.postValue(cachedCustomers);
                 }
             } catch (IOException e) {
                 Log.e("CustomerRepository", "IO error fetching customers", e);
-                if (attempt < maxAttempts) {
-                    long delay = (long) Math.pow(2, attempt) * 1000;
-                    Log.w("CustomerRepository", "Retrying in " + delay + "ms");
-                    try {
-                        Thread.sleep(delay);
-                        fetchCustomersWithBackoff(attempt + 1, maxAttempts);
-                    } catch (InterruptedException ie) {
-                        Log.e("CustomerRepository", "Interrupted during retry", ie);
-                        customersLiveData.postValue(customersLiveData.getValue());
-                    }
-                } else {
-                    customersLiveData.postValue(customersLiveData.getValue());
-                }
+                if (cachedCustomers != null) customersLiveData.postValue(cachedCustomers);
             }
         }).start();
     }

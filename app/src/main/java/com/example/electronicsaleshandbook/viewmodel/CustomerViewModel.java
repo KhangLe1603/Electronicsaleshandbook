@@ -1,4 +1,4 @@
-package com.example.customerlistapp.viewmodel;
+package com.example.electronicsaleshandbook.viewmodel;
 
 import android.content.Context;
 import android.util.Log;
@@ -8,9 +8,8 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
 import androidx.lifecycle.ViewModel;
 
-import com.example.customerlistapp.models.Customer;
-import com.example.customerlistapp.repository.CustomerRepository;
-import com.google.api.services.sheets.v4.Sheets;
+import com.example.electronicsaleshandbook.model.Customer;
+import com.example.electronicsaleshandbook.repository.CustomerRepository;
 import com.google.api.services.sheets.v4.model.BatchUpdateSpreadsheetRequest;
 import com.google.api.services.sheets.v4.model.DeleteDimensionRequest;
 import com.google.api.services.sheets.v4.model.DimensionRange;
@@ -128,15 +127,15 @@ public class CustomerViewModel extends ViewModel {
                         .setValueInputOption("RAW")
                         .execute();
 
-                // Chờ 1 giây để Google Sheets cập nhật trước khi làm mới
-                Thread.sleep(3000);
-                refreshCustomers();
+                // Chờ 2 giây để Google Sheets cập nhật
+                Thread.sleep(2000);
+
+                Log.d("CustomerViewModel", "Customer added successfully at row " + (lastRow + 1));
             } catch (IOException e) {
                 Log.e("CustomerViewModel", "Error adding customer", e);
             } catch (InterruptedException e) {
-                Log.w("CustomerViewModel", "Thread interrupted while waiting to refresh", e);
+                Log.w("CustomerViewModel", "Thread interrupted while waiting", e);
                 Thread.currentThread().interrupt(); // Đặt lại trạng thái interrupt
-                refreshCustomers(); // Vẫn làm mới dù bị gián đoạn
             }
         }).start();
     }
@@ -156,9 +155,15 @@ public class CustomerViewModel extends ViewModel {
                         .setValueInputOption("RAW")
                         .execute();
 
-                refreshCustomers();
+                // Chờ 2 giây để Google Sheets cập nhật
+                Thread.sleep(2000);
+
+                Log.d("CustomerViewModel", "Customer updated successfully at row " + sheetRowIndex);
             } catch (IOException e) {
                 Log.e("CustomerViewModel", "Error updating customer", e);
+            } catch (InterruptedException e) {
+                Log.w("CustomerViewModel", "Thread interrupted while waiting", e);
+                Thread.currentThread().interrupt(); // Đặt lại trạng thái interrupt
             }
         }).start();
     }
@@ -184,9 +189,15 @@ public class CustomerViewModel extends ViewModel {
                         .batchUpdate("1T0vRbdFnjTUTKkgcpbSuvjNnbG9eD49j_xjlknWtj_A", batchRequest)
                         .execute();
 
-                refreshCustomers();
+                // Chờ 2 giây để Google Sheets cập nhật
+                Thread.sleep(2000);
+
+                Log.d("CustomerViewModel", "Customer deleted successfully at row " + sheetRowIndex);
             } catch (IOException e) {
                 Log.e("CustomerViewModel", "Error deleting customer", e);
+            } catch (InterruptedException e) {
+                Log.w("CustomerViewModel", "Thread interrupted while waiting", e);
+                Thread.currentThread().interrupt(); // Đặt lại trạng thái interrupt
             }
         }).start();
     }

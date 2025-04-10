@@ -178,6 +178,21 @@
             android:visibility="gone"
             app:backgroundTint="#4CAF50" />
 
+        <!-- Floating Button 4 - Thêm khách hàng -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabAddCustomer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|bottom"
+            android:layout_margin="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="256dp"
+            android:contentDescription="Thêm khách hàng"
+            android:src="@drawable/add_customer"
+            android:visibility="gone"
+            app:backgroundTint="#4CAF50"
+            style="@style/Widget.MaterialComponents.FloatingActionButton"
+            />
 
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:id="@+id/swipeRefreshLayout"

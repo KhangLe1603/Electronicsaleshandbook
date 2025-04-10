@@ -1,4 +1,4 @@
-package com.example.customerlistapp.ui;
+package com.example.electronicsaleshandbook.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -18,13 +18,15 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.example.customerlistapp.viewmodel.CustomerViewModel;
+import com.example.electronicsaleshandbook.viewmodel.CustomerViewModel;
 import com.example.electronicsaleshandbook.R;
+import com.example.electronicsaleshandbook.viewmodel.ProductViewModel;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 
 public class CustomerList extends AppCompatActivity {
-    private CustomerViewModel viewModel;
+    private CustomerViewModel viewModel_Customer;
+    private ProductViewModel viewModel_Product;
     private CustomerAdapter adapter;
     private SwipeRefreshLayout swipeRefreshLayout;
     private FloatingActionButton fabFilter, fabOption_CustomerList, fabOption_ProductList, fabOption_AddProduct, fabOption_AddCustomer;
@@ -32,11 +34,20 @@ public class CustomerList extends AppCompatActivity {
     private boolean isFabMenuOpen = false;
     private boolean expectingChange = false;
     private int lastCustomerSize = -1;
+    private int retryCount = 0;
+    private static final int MAX_RETRIES = 3;
+
+    private static final int REQUEST_ADD_CUSTOMER = 1;
+    private static final int REQUEST_CUSTOMER_DETAIL = 2;
+    private static final int REQUEST_ADD_PRODUCT = 3;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_customer_list);
+
+        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
 
         // Khởi tạo RecyclerView
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
@@ -48,7 +59,7 @@ public class CustomerList extends AppCompatActivity {
         adapter.setOnCustomerClickListener(customer -> {
             Intent intent = new Intent(CustomerList.this, Customer_detail.class);
             intent.putExtra("CUSTOMER", customer);
-            startActivityForResult(intent, 2);
+            startActivityForResult(intent, REQUEST_CUSTOMER_DETAIL);
         });
 
         EditText searchBar = findViewById(R.id.searchBar);
@@ -57,7 +68,7 @@ public class CustomerList extends AppCompatActivity {
         ImageButton btnFilter = findViewById(R.id.imageButtonSearch);
         btnFilter.setOnClickListener(v -> {
             String query = searchBar.getText().toString().trim();
-            viewModel.setSearchQuery(query);
+            viewModel_Customer.setSearchQuery(query);
         });
 
         // Khởi tạo Dropdown sắp xếp
@@ -66,7 +77,7 @@ public class CustomerList extends AppCompatActivity {
         ArrayAdapter<String> sortAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, sortOptions);
         sortDropdown.setAdapter(sortAdapter);
         sortDropdown.setOnItemClickListener((parent, view, position, id) -> {
-            viewModel.setSortOption(position); // Cập nhật tiêu chí sắp xếp
+            viewModel_Customer.setSortOption(position); // Cập nhật tiêu chí sắp xếp
             Toast.makeText(this, "Sắp xếp theo: " + sortAdapter.getItem(position), Toast.LENGTH_SHORT).show();
         });
 
@@ -80,7 +91,7 @@ public class CustomerList extends AppCompatActivity {
         setupFabMenu();
 
         // Khởi tạo ViewModel
-        viewModel = new ViewModelProvider(this,
+        viewModel_Customer = new ViewModelProvider(this,
                 new ViewModelProvider.Factory() {
                     @NonNull
                     @Override
@@ -90,37 +101,33 @@ public class CustomerList extends AppCompatActivity {
                 }).get(CustomerViewModel.class);
 
         // Quan sát danh sách khách hàng
-        viewModel.getFilteredCustomers().observe(this, customers -> {
+        viewModel_Customer.getFilteredCustomers().observe(this, customers -> {
             int currentSize = customers != null ? customers.size() : 0;
             Log.d("CustomerList", "Customers updated, size: " + currentSize);
             adapter.setCustomers(customers);
-            if (customers == null || customers.isEmpty()) {
-                Toast.makeText(this, "Không có khách hàng nào", Toast.LENGTH_SHORT).show();
-            }
-            if (swipeRefreshLayout != null && swipeRefreshLayout.isRefreshing()) {
-                swipeRefreshLayout.setRefreshing(false);
-            }
-            if (expectingChange && lastCustomerSize != -1 && currentSize <= lastCustomerSize) {
+            swipeRefreshLayout.setRefreshing(false);
+
+            if (expectingChange && lastCustomerSize != -1 && currentSize <= lastCustomerSize && retryCount < MAX_RETRIES) {
+                retryCount++;
                 new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    viewModel.refreshCustomers();
-                }, 3000); // Tăng lên 3 giây
+                    Log.d("CustomerList", "Retrying refresh, attempt " + retryCount + "/" + MAX_RETRIES);
+                    viewModel_Customer.refreshCustomers();
+                }, 3000);
             } else {
                 expectingChange = false;
+                retryCount = 0;
+                if (customers == null || customers.isEmpty()) {
+                    Toast.makeText(this, "Không có khách hàng nào", Toast.LENGTH_SHORT).show();
+                }
             }
             lastCustomerSize = currentSize;
         });
 
-
-        // Khởi tạo SwipeRefreshLayout
-        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
-        if (swipeRefreshLayout != null) {
-            swipeRefreshLayout.setOnRefreshListener(() -> {
-                viewModel.refreshCustomers();
-                searchBar.setText("");
-                sortDropdown.setText(sortAdapter.getItem(0), false);
-            });
-        }
-
+        swipeRefreshLayout.setOnRefreshListener(() -> {
+            viewModel_Customer.refreshCustomers();
+            searchBar.setText("");
+            sortDropdown.setText(sortAdapter.getItem(0), false);
+        });
 
     }
 
@@ -132,55 +139,68 @@ public class CustomerList extends AppCompatActivity {
         fabFilter.setOnClickListener(v -> {
             if (!isFabMenuOpen) {
                 // Mở menu
-                fabOption_CustomerList.setVisibility(View.VISIBLE);
                 fabOption_ProductList.setVisibility(View.VISIBLE);
                 fabOption_AddProduct.setVisibility(View.VISIBLE);
                 fabOption_AddCustomer.setVisibility(View.VISIBLE);
-                fabOption_CustomerList.animate().translationY(-dpToPx(80)).setDuration(200).start();
-                fabOption_ProductList.animate().translationY(-dpToPx(160)).setDuration(200).start();
-                fabOption_AddProduct.animate().translationY(-dpToPx(240)).setDuration(200).start();
-                fabOption_AddCustomer.animate().translationY(-dpToPx(320)).setDuration(200).start();
-                fabFilter.setImageResource(R.drawable.close); // Cần drawable "close"
+
+                fabOption_ProductList.animate().translationY(-dpToPx(80)).setDuration(200).start();
+                fabOption_AddProduct.animate().translationY(-dpToPx(160)).setDuration(200).start();
+                fabOption_AddCustomer.animate().translationY(-dpToPx(240)).setDuration(200).start();
+
+                fabFilter.setImageResource(R.drawable.close);
                 fabFilter.setBackgroundTintList(getResources().getColorStateList(R.color.fab_open_color, getTheme()));
             } else {
                 // Đóng menu
-                fabOption_CustomerList.animate().translationY(0).setDuration(200).start();
-                fabOption_ProductList.animate().translationY(0).setDuration(200).start();
-                fabOption_AddProduct.animate().translationY(0).setDuration(200).start();
-                fabOption_AddCustomer.animate().translationY(0).setDuration(200).start();
-                fabOption_CustomerList.setVisibility(View.GONE);
-                fabOption_ProductList.setVisibility(View.GONE);
-                fabOption_AddProduct.setVisibility(View.GONE);
-                fabOption_AddCustomer.setVisibility(View.GONE);
-                fabFilter.setImageResource(R.drawable.menu_opiton); // Trở lại icon ban đầu
+                fabOption_ProductList.animate().translationY(0).setDuration(200)
+                        .withEndAction(() -> fabOption_ProductList.setVisibility(View.GONE)).start();
+                fabOption_AddProduct.animate().translationY(0).setDuration(200)
+                        .withEndAction(() -> fabOption_AddProduct.setVisibility(View.GONE)).start();
+                fabOption_AddCustomer.animate().translationY(0).setDuration(200)
+                        .withEndAction(() -> fabOption_AddCustomer.setVisibility(View.GONE)).start();
+
+                fabFilter.setImageResource(R.drawable.menu_opiton);
                 fabFilter.setBackgroundTintList(getResources().getColorStateList(R.color.fab_close_color, getTheme()));
             }
             isFabMenuOpen = !isFabMenuOpen;
         });
 
         fabOption_ProductList.setOnClickListener(v -> {
-
+            Intent intent = new Intent(CustomerList.this, ProductsView.class);
+            startActivity(intent);
+            finish(); // Chuyển hoàn toàn sang ProductsView
         });
 
         fabOption_AddProduct.setOnClickListener(v -> {
-
+            Intent intent = new Intent(CustomerList.this, AddProductActivity.class);
+            startActivityForResult(intent, REQUEST_ADD_PRODUCT);
         });
 
         fabOption_AddCustomer.setOnClickListener(v -> {
             Intent intent = new Intent(CustomerList.this, AddCustomer.class);
-            startActivityForResult(intent, 1);
+            startActivityForResult(intent, REQUEST_ADD_CUSTOMER);
         });
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK && (requestCode == 1 || requestCode == 2)) {
-            if (data != null && data.getBooleanExtra("REFRESH", false)) {
-                expectingChange = true;
-                SwipeRefreshLayout swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
-                swipeRefreshLayout.setRefreshing(true); // Hiển thị loading
-                viewModel.refreshCustomers(); // Gọi làm mới
+        Log.d("CustomerList", "onActivityResult: requestCode=" + requestCode + ", resultCode=" + resultCode);
+        if (resultCode == RESULT_OK && data != null && data.getBooleanExtra("REFRESH", false)) {
+            expectingChange = true;
+            retryCount = 0;
+            swipeRefreshLayout.setRefreshing(true);
+            switch (requestCode) {
+                case REQUEST_ADD_CUSTOMER: // Từ AddCustomer
+                    viewModel_Customer.refreshCustomers();
+                    break;
+                case REQUEST_CUSTOMER_DETAIL: // Từ Customer_detail
+                    viewModel_Customer.refreshCustomers();
+                    break;
+                case REQUEST_ADD_PRODUCT: // Từ AddProductActivity
+                    viewModel_Product.refreshProducts(); // Nếu CustomerList hiển thị sản phẩm
+                    break;
+                default:
+                    Log.w("CustomerList", "Unknown requestCode: " + requestCode);
             }
         }
     }

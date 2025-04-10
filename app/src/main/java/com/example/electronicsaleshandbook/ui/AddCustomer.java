@@ -1,4 +1,4 @@
-package com.example.customerlistapp.ui;
+package com.example.electronicsaleshandbook.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -11,7 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.customerlistapp.viewmodel.CustomerViewModel;
+import com.example.electronicsaleshandbook.viewmodel.CustomerViewModel;
 import com.example.electronicsaleshandbook.R;
 
 public class AddCustomer extends AppCompatActivity {

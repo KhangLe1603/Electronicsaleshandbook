@@ -1,4 +1,4 @@
-package com.example.customerlistapp.models;
+package com.example.electronicsaleshandbook.model;
 
 import java.io.Serializable;
 

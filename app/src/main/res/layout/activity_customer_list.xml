@@ -7,7 +7,7 @@
     android:orientation="vertical"
     android:background="#E8EAF6"
     android:paddingTop="40dp"
-    tools:context="com.example.customerlistapp.ui.CustomerList">
+    tools:context=".ui.CustomerList">
 
     <!-- Tiêu đề -->
     <TextView
