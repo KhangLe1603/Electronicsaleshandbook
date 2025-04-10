@@ -35,6 +35,8 @@ public class ProductsView extends AppCompatActivity {
     private ProductAdapter adapter;
     private int lastProductSize = -1;
     private boolean expectingChange = false;
+    private int retryCount = 0;
+    private static final int MAX_RETRIES = 3;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,14 +75,15 @@ public class ProductsView extends AppCompatActivity {
             adapter.setProducts(products);
             swipeRefreshLayout.setRefreshing(false);
 
-            // Kiểm tra nếu đang chờ thay đổi và kích thước không tăng
-            if (expectingChange && lastProductSize != -1 && currentSize <= lastProductSize) {
+            if (expectingChange && lastProductSize != -1 && currentSize <= lastProductSize && retryCount < MAX_RETRIES) {
+                retryCount++;
                 new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    Log.d("ProductsView", "Retrying refresh due to unchanged size");
+                    Log.d("ProductsView", "Retrying refresh due to unchanged size, attempt " + retryCount + "/" + MAX_RETRIES);
                     viewModel.refreshProducts();
-                }, 2000); // Thử lại sau 2 giây
+                }, 2000);
             } else {
-                expectingChange = false; // Reset cờ sau khi cập nhật thành công
+                expectingChange = false;
+                retryCount = 0; // Reset sau khi thành công hoặc hết retry
             }
             lastProductSize = currentSize;
         });
@@ -159,9 +162,10 @@ public class ProductsView extends AppCompatActivity {
         if (resultCode == RESULT_OK && (requestCode == 1 || requestCode == 2)) {
             if (data != null && data.getBooleanExtra("REFRESH", false)) {
                 expectingChange = true;
+                retryCount = 0; // Reset retryCount khi bắt đầu làm mới
                 SwipeRefreshLayout swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
-                swipeRefreshLayout.setRefreshing(true); // Hiển thị loading
-                viewModel.refreshProducts(); // Gọi làm mới
+                swipeRefreshLayout.setRefreshing(true);
+                viewModel.refreshProducts();
             }
         }
     }

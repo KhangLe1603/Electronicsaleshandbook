@@ -125,43 +125,30 @@ public class ProductViewModel extends ViewModel {
     public void addProduct(String name, String description, String unitPrice, String sellingPrice, String unit) {
         new Thread(() -> {
             try {
-                // Lấy dữ liệu hiện tại để tìm dòng trống cuối cùng từ cột B
                 ValueRange existingData = repository.getSheetsService().spreadsheets().values()
                         .get("1T0vRbdFnjTUTKkgcpbSuvjNnbG9eD49j_xjlknWtj_A", "Sheet1!B2:F")
                         .execute();
-                int lastRow = existingData.getValues() != null ? existingData.getValues().size() + 1 : 1; // Dòng cuối + 1
-
-                // Chỉ định phạm vi chính xác: B<row>:F<row>
+                int lastRow = existingData.getValues() != null ? existingData.getValues().size() + 1 : 1;
                 String range = "Sheet1!B" + (lastRow + 1) + ":F" + (lastRow + 1);
 
-                // Chuẩn bị dữ liệu với thứ tự đúng: B (name), C (description), D (unitPrice), E (sellingPrice), F (unit)
                 ValueRange body = new ValueRange()
                         .setValues(Arrays.asList(
-                                Arrays.asList(
-                                        name,
-                                        description,
-                                        Double.parseDouble(unitPrice),
-                                        Double.parseDouble(sellingPrice),
-                                        unit)
+                                Arrays.asList(name, description, Double.parseDouble(unitPrice), Double.parseDouble(sellingPrice), unit)
                         ));
 
-                // Ghi dữ liệu vào phạm vi đã chỉ định
                 repository.getSheetsService().spreadsheets().values()
                         .update("1T0vRbdFnjTUTKkgcpbSuvjNnbG9eD49j_xjlknWtj_A", range, body)
                         .setValueInputOption("RAW")
                         .execute();
 
-                // Chờ 1 giây để Google Sheets cập nhật trước khi làm mới
-                Thread.sleep(1000);
-                refreshProducts();
+                Thread.sleep(2000); // Đợi 2 giây để Google Sheets cập nhật
             } catch (IOException e) {
                 Log.e("ProductViewModel", "Error adding product", e);
-            } catch (InterruptedException e) {
-                Log.w("ProductViewModel", "Thread interrupted while waiting to refresh", e);
-                Thread.currentThread().interrupt(); // Đặt lại trạng thái interrupt
-                refreshProducts(); // Vẫn làm mới dù bị gián đoạn
             } catch (NumberFormatException e) {
-                Log.e("ProductViewModel", "Invalid number format in unitPrice or sellingPrice", e);
+                Log.e("ProductViewModel", "Invalid number format", e);
+            } catch (InterruptedException e) {
+                Log.w("ProductViewModel", "Interrupted while waiting", e);
+                Thread.currentThread().interrupt();
             }
         }).start();
     }
@@ -181,9 +168,12 @@ public class ProductViewModel extends ViewModel {
                         .setValueInputOption("RAW")
                         .execute();
 
-                refreshProducts();
+                Thread.sleep(2000); // Đợi 2 giây
             } catch (IOException | NumberFormatException e) {
                 e.printStackTrace();
+            } catch (InterruptedException e) {
+                Log.w("ProductViewModel", "Interrupted while waiting", e);
+                Thread.currentThread().interrupt();
             }
         }).start();
     }
@@ -191,7 +181,7 @@ public class ProductViewModel extends ViewModel {
     public void deleteProduct(int sheetRowIndex) {
         new Thread(() -> {
             try {
-                int adjustedRowIndex = sheetRowIndex - 1; // Chỉ số dòng cho BatchUpdate bắt đầu từ 0
+                int adjustedRowIndex = sheetRowIndex - 1;
 
                 DeleteDimensionRequest deleteRequest = new DeleteDimensionRequest()
                         .setRange(new DimensionRange()
@@ -209,9 +199,13 @@ public class ProductViewModel extends ViewModel {
                 repository.getSheetsService().spreadsheets()
                         .batchUpdate("1T0vRbdFnjTUTKkgcpbSuvjNnbG9eD49j_xjlknWtj_A", batchRequest)
                         .execute();
-                refreshProducts();
+
+                Thread.sleep(2000); // Đợi 2 giây
             } catch (IOException e) {
                 e.printStackTrace();
+            } catch (InterruptedException e) {
+                Log.w("ProductViewModel", "Interrupted while waiting", e);
+                Thread.currentThread().interrupt();
             }
         }).start();
     }

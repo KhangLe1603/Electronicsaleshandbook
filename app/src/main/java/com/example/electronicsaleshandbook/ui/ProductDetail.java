@@ -116,6 +116,7 @@ public class ProductDetail extends AppCompatActivity {
                     .setPositiveButton("Có", (dialog, which) -> {
                         viewModel.deleteProduct(product.getSheetRowIndex());
                         Toast.makeText(this, "Đã xóa sản phẩm", Toast.LENGTH_SHORT).show();
+
                         Intent intent = new Intent();
                         intent.putExtra("REFRESH", true);
                         setResult(RESULT_OK, intent);
