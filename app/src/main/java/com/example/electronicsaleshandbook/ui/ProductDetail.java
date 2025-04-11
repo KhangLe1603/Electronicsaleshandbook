@@ -19,7 +19,7 @@ import com.example.electronicsaleshandbook.model.Product;
 import com.example.electronicsaleshandbook.viewmodel.ProductViewModel;
 
 public class ProductDetail extends AppCompatActivity {
-    private EditText edtTenSanPham, edtDonGia, edtGiaBan, edtDonViTinh, edtMoTa;
+    private EditText edtTenSanPham, edtDonGia, edtGiaBan, edtDonViTinh, edtMoTa, editId;
     private Button btnSua, btnLuu, btnXoa;
     private ProductViewModel viewModel;
     private Product product;
@@ -35,6 +35,7 @@ public class ProductDetail extends AppCompatActivity {
         ImageButton btnBack = findViewById(R.id.btnBack);
         btnBack.setOnClickListener(v -> finish());
 
+        editId = findViewById(R.id.edtMaSanPham);
         edtTenSanPham = findViewById(R.id.edtTenSanPham);
         edtDonGia = findViewById(R.id.edtDonGia);
         edtGiaBan = findViewById(R.id.edtGiaBan);
@@ -129,6 +130,8 @@ public class ProductDetail extends AppCompatActivity {
     }
 
     private void displayProductDetails() {
+        editId.setText(product.getId());
+        editId.setEnabled(false);
         edtTenSanPham.setText(product.getName());
         edtDonGia.setText(product.getUnitPrice());
         edtGiaBan.setText(product.getPrice());

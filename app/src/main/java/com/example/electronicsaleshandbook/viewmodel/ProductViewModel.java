@@ -125,15 +125,20 @@ public class ProductViewModel extends ViewModel {
     public void addProduct(String name, String description, String unitPrice, String sellingPrice, String unit) {
         new Thread(() -> {
             try {
+                // Lấy dữ liệu từ cột B để đếm số dòng (không cần cột A)
                 ValueRange existingData = repository.getSheetsService().spreadsheets().values()
-                        .get("1T0vRbdFnjTUTKkgcpbSuvjNnbG9eD49j_xjlknWtj_A", "Sheet1!B2:F")
+                        .get("1T0vRbdFnjTUTKkgcpbSuvjNnbG9eD49j_xjlknWtj_A", "Sheet1!B2:B")
                         .execute();
                 int lastRow = existingData.getValues() != null ? existingData.getValues().size() + 1 : 1;
-                String range = "Sheet1!B" + (lastRow + 1) + ":F" + (lastRow + 1);
+                String newId = String.format("SP%03d", lastRow + 1); // Tạo mã SPxxx
 
+                // Phạm vi: B<row>:G<row> (bỏ cột A)
+                String range = "Sheet1!B" + (lastRow + 1) + ":G" + (lastRow + 1);
+
+                // Chuẩn bị dữ liệu: MÃ SP, Tên SPDV, ...
                 ValueRange body = new ValueRange()
                         .setValues(Arrays.asList(
-                                Arrays.asList(name, description, Double.parseDouble(unitPrice), Double.parseDouble(sellingPrice), unit)
+                                Arrays.asList(newId, name, description, Double.parseDouble(unitPrice), Double.parseDouble(sellingPrice), unit)
                         ));
 
                 repository.getSheetsService().spreadsheets().values()
@@ -141,7 +146,8 @@ public class ProductViewModel extends ViewModel {
                         .setValueInputOption("RAW")
                         .execute();
 
-                Thread.sleep(2000); // Đợi 2 giây để Google Sheets cập nhật
+                Thread.sleep(2000);
+                Log.d("ProductViewModel", "Product added successfully with ID: " + newId + " at row " + (lastRow + 1));
             } catch (IOException e) {
                 Log.e("ProductViewModel", "Error adding product", e);
             } catch (NumberFormatException e) {
@@ -156,7 +162,8 @@ public class ProductViewModel extends ViewModel {
     public void updateProduct(int sheetRowIndex, String name, String description, String unitPrice, String sellingPrice, String unit) {
         new Thread(() -> {
             try {
-                String range = "Sheet1!B" + sheetRowIndex + ":F" + sheetRowIndex;
+                // Chỉ cập nhật từ cột C (Tên SPDV) đến G (Đơn vị tính), giữ nguyên STT và MÃ SP
+                String range = "Sheet1!C" + sheetRowIndex + ":G" + sheetRowIndex;
 
                 ValueRange body = new ValueRange()
                         .setValues(Arrays.asList(
@@ -168,9 +175,10 @@ public class ProductViewModel extends ViewModel {
                         .setValueInputOption("RAW")
                         .execute();
 
-                Thread.sleep(2000); // Đợi 2 giây
+                Thread.sleep(2000);
+                Log.d("ProductViewModel", "Product updated successfully at row " + sheetRowIndex);
             } catch (IOException | NumberFormatException e) {
-                e.printStackTrace();
+                Log.e("ProductViewModel", "Error updating product", e);
             } catch (InterruptedException e) {
                 Log.w("ProductViewModel", "Interrupted while waiting", e);
                 Thread.currentThread().interrupt();
@@ -200,9 +208,10 @@ public class ProductViewModel extends ViewModel {
                         .batchUpdate("1T0vRbdFnjTUTKkgcpbSuvjNnbG9eD49j_xjlknWtj_A", batchRequest)
                         .execute();
 
-                Thread.sleep(2000); // Đợi 2 giây
+                Thread.sleep(2000);
+                Log.d("ProductViewModel", "Product deleted successfully at row " + sheetRowIndex);
             } catch (IOException e) {
-                e.printStackTrace();
+                Log.e("ProductViewModel", "Error deleting product", e);
             } catch (InterruptedException e) {
                 Log.w("ProductViewModel", "Interrupted while waiting", e);
                 Thread.currentThread().interrupt();

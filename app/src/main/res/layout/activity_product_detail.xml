@@ -60,10 +60,28 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:orientation="vertical">
 
             <!-- Tên sản phẩm -->
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Mã Sản Phẩm:"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/edtMaSanPham"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@android:drawable/editbox_background"
+                android:clickable="false"
+                android:focusable="false"
+                android:hint="Mã sản phẩm"
+                android:padding="8dp"
+                android:textColorHint="#33000000" />
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -159,8 +177,8 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="32dp">
+                android:layout_marginTop="6dp"
+                android:layout_marginBottom="6dp">
 
                 <Button
                     android:id="@+id/btnSua"
@@ -192,6 +210,20 @@
                     android:backgroundTint="#F44336"
                     android:textColor="@android:color/white"/>
             </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Khách hàng sử dụng:"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/customers_recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
 
         </LinearLayout>
 

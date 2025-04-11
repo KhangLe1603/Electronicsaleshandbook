@@ -50,7 +50,11 @@ public class CustomerRepository {
                     .setApplicationName("Customer List App")
                     .build();
 
-            fetchCustomersWithBackoff(0, 5); // Gọi lần đầu với backoff
+            if (cachedCustomers == null) {
+                fetchCustomersWithBackoff(0, 5); // Gọi lần đầu nếu cache trống
+            } else {
+                customersLiveData.postValue(cachedCustomers); // Dùng cache nếu đã có
+            }
         } catch (FileNotFoundException e) {
             throw new IOException("Service account file not found in assets", e);
         }
@@ -62,20 +66,25 @@ public class CustomerRepository {
 
     public void refreshCustomers() {
         synchronized (this) {
-            long currentTime = System.currentTimeMillis();
-            if (isRefreshing || (currentTime - lastRefreshTime < MIN_REFRESH_INTERVAL)) {
-                Log.d("CustomerRepository", "Skipping refresh, too soon or already refreshing");
+            if (isRefreshing) {
+                Log.d("CustomerRepository", "Skipping refresh, already refreshing");
                 if (cachedCustomers != null) {
-                    customersLiveData.postValue(cachedCustomers); // Trả về cache nếu có
+                    customersLiveData.postValue(cachedCustomers);
                 }
                 return;
             }
+            // Chỉ làm mới nếu cache đã bị vô hiệu hóa
+            if (cachedCustomers != null) {
+                Log.d("CustomerRepository", "Using cached customers, size: " + cachedCustomers.size());
+                customersLiveData.postValue(cachedCustomers);
+                return;
+            }
             isRefreshing = true;
-            lastRefreshTime = currentTime;
+            lastRefreshTime = System.currentTimeMillis();
         }
         fetchCustomersWithBackoff(0, 5);
         synchronized (this) {
-            isRefreshing = false; // Reset trạng thái sau khi hoàn thành
+            isRefreshing = false;
         }
     }
 
@@ -89,28 +98,28 @@ public class CustomerRepository {
                 requestCount++;
                 Log.d("CustomerRepository", "Sending request #" + requestCount);
                 ValueRange response = service.spreadsheets().values()
-                        .get(SPREADSHEET_ID, RANGE)
+                        .get(SPREADSHEET_ID, "KhachHang!A2:I")
                         .execute();
                 List<Customer> customers = new ArrayList<>();
                 List<List<Object>> values = response.getValues();
-                Log.d("CustomerRepository", "Raw response values: " + (values != null ? values.toString() : "null"));
-                if (values != null && !values.isEmpty()) {
+                if (values != null) {
                     for (int i = 0; i < values.size(); i++) {
                         List<Object> row = values.get(i);
-                        String surname = row.size() > 0 && row.get(0) != null ? row.get(0).toString() : "";
-                        String firstName = row.size() > 1 && row.get(1) != null ? row.get(1).toString() : "";
-                        String address = row.size() > 2 && row.get(2) != null ? row.get(2).toString() : "";
-                        String phone = row.size() > 3 && row.get(3) != null ? row.get(3).toString() : "";
-                        String email = row.size() > 4 && row.get(4) != null ? row.get(4).toString() : "";
-                        String birthday = row.size() > 5 && row.get(5) != null ? row.get(5).toString() : "";
-                        String gender = row.size() > 6 && row.get(6) != null ? row.get(6).toString() : "";
+                        String id = row.size() > 1 ? row.get(1).toString() : "";
+                        String surname = row.size() > 2 ? row.get(2).toString() : "";
+                        String firstName = row.size() > 3 ? row.get(3).toString() : "";
+                        String address = row.size() > 4 ? row.get(4).toString() : "";
+                        String phone = row.size() > 5 ? row.get(5).toString() : "";
+                        String email = row.size() > 6 ? row.get(6).toString() : "";
+                        String birthday = row.size() > 7 ? row.get(7).toString() : "";
+                        String gender = row.size() > 8 ? row.get(8).toString() : "";
                         Customer customer = new Customer(surname, firstName, address, phone, email, birthday, gender);
+                        customer.setId(id);
                         customer.setSheetRowIndex(i + 2);
                         customers.add(customer);
                     }
                 }
-                cachedCustomers = customers; // Cập nhật cache
-                Log.d("CustomerRepository", "Fetched customers, size: " + customers.size());
+                cachedCustomers = customers;
                 customersLiveData.postValue(customers);
             } catch (GoogleJsonResponseException e) {
                 if (e.getStatusCode() == 429 && attempt < maxAttempts) {
@@ -132,5 +141,11 @@ public class CustomerRepository {
                 if (cachedCustomers != null) customersLiveData.postValue(cachedCustomers);
             }
         }).start();
+    }
+
+    // Phương thức để vô hiệu hóa cache khi có thay đổi
+    public void invalidateCache() {
+        cachedCustomers = null;
+        Log.d("CustomerRepository", "Customer cache invalidated");
     }
 }

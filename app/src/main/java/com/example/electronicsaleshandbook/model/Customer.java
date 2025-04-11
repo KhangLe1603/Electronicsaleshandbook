@@ -3,6 +3,7 @@ package com.example.electronicsaleshandbook.model;
 import java.io.Serializable;
 
 public class Customer implements Serializable {
+    private String id;
     private String surname;    // Họ và đệm (e.g., "Nguyễn Văn")
     private String firstName;  // Tên (e.g., "A")
     private String address;    // Địa chỉ
@@ -29,6 +30,8 @@ public class Customer implements Serializable {
         this.gender = gender;
     }
 
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
     public String getSurname() { return surname; }
     public void setSurname(String surname) { this.surname = surname; }
     public String getFirstName() { return firstName; }

@@ -29,8 +29,6 @@ public class CustomerViewModel extends ViewModel {
     private final LiveData<List<Customer>> allCustomers;
     private final MutableLiveData<String> searchQuery = new MutableLiveData<>("");
     private final MutableLiveData<Integer> sortOption = new MutableLiveData<>(0);
-    private long lastRefreshTime = 0;
-    private static final long MIN_REFRESH_INTERVAL = 2000;
 
     public CustomerViewModel(Context context) {
         try {
@@ -90,15 +88,10 @@ public class CustomerViewModel extends ViewModel {
     }
 
     public void refreshCustomers() {
-        long currentTime = System.currentTimeMillis();
-        if (currentTime - lastRefreshTime >= MIN_REFRESH_INTERVAL) {
+        Log.d("CustomerViewModel", "Refreshing customer...");
             searchQuery.postValue("");
             sortOption.postValue(0);
             repository.refreshCustomers();
-            lastRefreshTime = currentTime;
-        } else {
-            Log.w("CustomerViewModel", "Refresh skipped to avoid rate limit");
-        }
     }
 
 
@@ -106,36 +99,34 @@ public class CustomerViewModel extends ViewModel {
                             String email, String birthday, String gender) {
         new Thread(() -> {
             try {
-                // Lấy dữ liệu hiện tại để tìm dòng trống cuối cùng từ cột B
+                // Lấy dữ liệu từ cột B để đếm số dòng (không cần cột A vì STT tự động)
                 ValueRange existingData = repository.getSheetsService().spreadsheets().values()
-                        .get("1T0vRbdFnjTUTKkgcpbSuvjNnbG9eD49j_xjlknWtj_A", "KhachHang!B2:H")
+                        .get("1T0vRbdFnjTUTKkgcpbSuvjNnbG9eD49j_xjlknWtj_A", "KhachHang!B2:B")
                         .execute();
-                int lastRow = existingData.getValues() != null ? existingData.getValues().size() + 1 : 1; // Dòng cuối + 1
+                int lastRow = existingData.getValues() != null ? existingData.getValues().size() + 1 : 1;
+                String newId = String.format("KH%03d", lastRow + 1); // Tạo mã KHxxx
 
-                // Chỉ định phạm vi chính xác: B<row>:H<row>
-                String range = "KhachHang!B" + (lastRow + 1) + ":H" + (lastRow + 1);
+                // Phạm vi: B<row>:I<row> (bỏ cột A)
+                String range = "KhachHang!B" + (lastRow + 1) + ":I" + (lastRow + 1);
 
-                // Chuẩn bị dữ liệu với thứ tự đúng: B (surname), C (firstName), D (address), E (phone), F (email), G (birthday), H (gender)
+                // Chuẩn bị dữ liệu: MÃ KH, Họ và đệm, Tên, ...
                 ValueRange body = new ValueRange()
                         .setValues(Arrays.asList(
-                                Arrays.asList(surname, firstName, address, phone, email, birthday, gender)
+                                Arrays.asList(newId, surname, firstName, address, phone, email, birthday, gender)
                         ));
 
-                // Ghi dữ liệu vào phạm vi đã chỉ định
                 repository.getSheetsService().spreadsheets().values()
                         .update("1T0vRbdFnjTUTKkgcpbSuvjNnbG9eD49j_xjlknWtj_A", range, body)
                         .setValueInputOption("RAW")
                         .execute();
 
-                // Chờ 2 giây để Google Sheets cập nhật
                 Thread.sleep(2000);
-
-                Log.d("CustomerViewModel", "Customer added successfully at row " + (lastRow + 1));
+                Log.d("CustomerViewModel", "Customer added successfully with ID: " + newId + " at row " + (lastRow + 1));
             } catch (IOException e) {
                 Log.e("CustomerViewModel", "Error adding customer", e);
             } catch (InterruptedException e) {
                 Log.w("CustomerViewModel", "Thread interrupted while waiting", e);
-                Thread.currentThread().interrupt(); // Đặt lại trạng thái interrupt
+                Thread.currentThread().interrupt();
             }
         }).start();
     }
@@ -144,7 +135,8 @@ public class CustomerViewModel extends ViewModel {
                                String phone, String email, String birthday, String gender) {
         new Thread(() -> {
             try {
-                String range = "KhachHang!B" + sheetRowIndex + ":H" + sheetRowIndex;
+                // Chỉ cập nhật từ cột C (Họ và đệm) đến I (Giới Tính), giữ nguyên STT và MÃ KH
+                String range = "KhachHang!C" + sheetRowIndex + ":I" + sheetRowIndex;
                 ValueRange body = new ValueRange()
                         .setValues(Arrays.asList(
                                 Arrays.asList(surname, firstName, address, phone, email, birthday, gender)
@@ -155,15 +147,13 @@ public class CustomerViewModel extends ViewModel {
                         .setValueInputOption("RAW")
                         .execute();
 
-                // Chờ 2 giây để Google Sheets cập nhật
                 Thread.sleep(2000);
-
                 Log.d("CustomerViewModel", "Customer updated successfully at row " + sheetRowIndex);
             } catch (IOException e) {
                 Log.e("CustomerViewModel", "Error updating customer", e);
             } catch (InterruptedException e) {
                 Log.w("CustomerViewModel", "Thread interrupted while waiting", e);
-                Thread.currentThread().interrupt(); // Đặt lại trạng thái interrupt
+                Thread.currentThread().interrupt();
             }
         }).start();
     }
@@ -171,7 +161,7 @@ public class CustomerViewModel extends ViewModel {
     public void deleteCustomer(int sheetRowIndex) {
         new Thread(() -> {
             try {
-                int adjustedRowIndex = sheetRowIndex - 1; // Chỉ số dòng bắt đầu từ 0
+                int adjustedRowIndex = sheetRowIndex - 1;
                 DeleteDimensionRequest deleteRequest = new DeleteDimensionRequest()
                         .setRange(new DimensionRange()
                                 .setSheetId(341227420)
@@ -189,15 +179,13 @@ public class CustomerViewModel extends ViewModel {
                         .batchUpdate("1T0vRbdFnjTUTKkgcpbSuvjNnbG9eD49j_xjlknWtj_A", batchRequest)
                         .execute();
 
-                // Chờ 2 giây để Google Sheets cập nhật
                 Thread.sleep(2000);
-
                 Log.d("CustomerViewModel", "Customer deleted successfully at row " + sheetRowIndex);
             } catch (IOException e) {
                 Log.e("CustomerViewModel", "Error deleting customer", e);
             } catch (InterruptedException e) {
                 Log.w("CustomerViewModel", "Thread interrupted while waiting", e);
-                Thread.currentThread().interrupt(); // Đặt lại trạng thái interrupt
+                Thread.currentThread().interrupt();
             }
         }).start();
     }

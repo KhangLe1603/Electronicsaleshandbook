@@ -46,7 +46,11 @@ public class SheetRepository {
                     credential)
                     .setApplicationName("Your App Name")
                     .build();
-            fetchProductsWithBackoff(0, 5); // Lấy dữ liệu lần đầu
+            if (cachedProducts == null) {
+                fetchProductsWithBackoff(0, 5); // Lấy dữ liệu lần đầu nếu cache trống
+            } else {
+                productsLiveData.postValue(cachedProducts); // Dùng cache nếu đã có
+            }
         } catch (FileNotFoundException e) {
             throw new IOException("Service account file not found in assets", e);
         }
@@ -58,20 +62,25 @@ public class SheetRepository {
 
     public void refreshProducts() {
         synchronized (this) {
-            long currentTime = System.currentTimeMillis();
-            if (isRefreshing || (currentTime - lastRefreshTime < MIN_REFRESH_INTERVAL)) {
-                Log.d("SheetRepository", "Skipping refresh, too soon or already refreshing");
+            if (isRefreshing) {
+                Log.d("SheetRepository", "Skipping refresh, already refreshing");
                 if (cachedProducts != null) {
-                    productsLiveData.postValue(cachedProducts); // Trả về cache nếu có
+                    productsLiveData.postValue(cachedProducts);
                 }
                 return;
             }
+            // Chỉ làm mới nếu cache đã bị vô hiệu hóa
+            if (cachedProducts != null) {
+                Log.d("SheetRepository", "Using cached products, size: " + cachedProducts.size());
+                productsLiveData.postValue(cachedProducts);
+                return;
+            }
             isRefreshing = true;
-            lastRefreshTime = currentTime;
+            lastRefreshTime = System.currentTimeMillis();
         }
         fetchProductsWithBackoff(0, 5);
         synchronized (this) {
-            isRefreshing = false; // Reset trạng thái sau khi hoàn thành
+            isRefreshing = false;
         }
     }
 
@@ -85,26 +94,26 @@ public class SheetRepository {
                 requestCount++;
                 Log.d("SheetRepository", "Sending request #" + requestCount);
                 ValueRange response = service.spreadsheets().values()
-                        .get(SPREADSHEET_ID, RANGE)
+                        .get(SPREADSHEET_ID, "Sheet1!A2:G")
                         .execute();
                 List<Product> products = new ArrayList<>();
                 List<List<Object>> values = response.getValues();
-                Log.d("SheetRepository", "Raw response values: " + (values != null ? values.toString() : "null"));
                 if (values != null) {
                     for (int i = 0; i < values.size(); i++) {
                         List<Object> row = values.get(i);
-                        String name = row.size() > 0 ? row.get(0).toString() : "";
-                        String description = row.size() > 1 ? row.get(1).toString() : "";
-                        String unitPrice = row.size() > 2 ? row.get(2).toString() : "";
-                        String sellingPrice = row.size() > 3 ? row.get(3).toString() : "";
-                        String unit = row.size() > 4 ? row.get(4).toString() : "";
+                        String id = row.size() > 1 ? row.get(1).toString() : "";
+                        String name = row.size() > 2 ? row.get(2).toString() : "";
+                        String description = row.size() > 3 ? row.get(3).toString() : "";
+                        String unitPrice = row.size() > 4 ? row.get(4).toString() : "";
+                        String sellingPrice = row.size() > 5 ? row.get(5).toString() : "";
+                        String unit = row.size() > 6 ? row.get(6).toString() : "";
                         Product product = new Product(name, description, unitPrice, sellingPrice, unit);
+                        product.setId(id);
                         product.setSheetRowIndex(i + 2);
                         products.add(product);
                     }
                 }
-                cachedProducts = products; // Cập nhật cache
-                Log.d("SheetRepository", "Fetched products, size: " + products.size());
+                cachedProducts = products;
                 productsLiveData.postValue(products);
             } catch (GoogleJsonResponseException e) {
                 if (e.getStatusCode() == 429 && attempt < maxAttempts) {
@@ -126,5 +135,11 @@ public class SheetRepository {
                 if (cachedProducts != null) productsLiveData.postValue(cachedProducts);
             }
         }).start();
+    }
+
+    // Phương thức để vô hiệu hóa cache khi có thay đổi
+    public void invalidateCache() {
+        cachedProducts = null;
+        Log.d("SheetRepository", "Product cache invalidated");
     }
 }
