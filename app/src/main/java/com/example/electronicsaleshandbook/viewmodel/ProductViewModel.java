@@ -93,7 +93,9 @@ public class ProductViewModel extends ViewModel {
     public void refreshProducts() {
         Log.d("ProductViewModel", "Refreshing products...");
         searchQuery.postValue(""); // Dùng postValue thay vì setValue
+
         sortOption.postValue(0);   // Dùng postValue thay vì setValue
+        repository.invalidateCache();
         repository.refreshProducts();
     }
 

@@ -190,11 +190,4 @@ public class ProductsView extends AppCompatActivity {
         }
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-    }
-
-
-
 }

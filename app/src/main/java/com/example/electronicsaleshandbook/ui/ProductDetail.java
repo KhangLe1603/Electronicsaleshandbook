@@ -2,6 +2,7 @@ package com.example.electronicsaleshandbook.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -13,16 +14,31 @@ import androidx.appcompat.widget.Toolbar;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.electronicsaleshandbook.R;
+import com.example.electronicsaleshandbook.model.Customer;
+import com.example.electronicsaleshandbook.model.CustomerProductLink;
 import com.example.electronicsaleshandbook.model.Product;
+import com.example.electronicsaleshandbook.repository.CustomerRepository;
+import com.example.electronicsaleshandbook.viewmodel.CustomerProductLinkViewModel;
 import com.example.electronicsaleshandbook.viewmodel.ProductViewModel;
+
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ProductDetail extends AppCompatActivity {
     private EditText edtTenSanPham, edtDonGia, edtGiaBan, edtDonViTinh, edtMoTa, editId;
     private Button btnSua, btnLuu, btnXoa;
     private ProductViewModel viewModel;
     private Product product;
+    private RecyclerView customersRecyclerView;
+    private CustomerDetailAdapter customerAdapter; // Dùng adapter bạn cung cấp
+    private CustomerProductLinkViewModel linkViewModel;
+    private CustomerRepository customerRepository;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +51,7 @@ public class ProductDetail extends AppCompatActivity {
         ImageButton btnBack = findViewById(R.id.btnBack);
         btnBack.setOnClickListener(v -> finish());
 
+        customersRecyclerView = findViewById(R.id.customers_recycler_view);
         editId = findViewById(R.id.edtMaSanPham);
         edtTenSanPham = findViewById(R.id.edtTenSanPham);
         edtDonGia = findViewById(R.id.edtDonGia);
@@ -60,6 +77,58 @@ public class ProductDetail extends AppCompatActivity {
         } else {
             Toast.makeText(this, "Không tìm thấy sản phẩm", Toast.LENGTH_SHORT).show();
             finish();
+        }
+
+        customerAdapter = new CustomerDetailAdapter();
+        customersRecyclerView.setAdapter(customerAdapter);
+        customersRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        // Khởi tạo CustomerRepository
+        try {
+            customerRepository = new CustomerRepository(this);
+        } catch (IOException | GeneralSecurityException e) {
+            Log.e("ProductDetail", "Failed to initialize CustomerRepository", e);
+            Toast.makeText(this, "Không thể kết nối đến dữ liệu khách hàng", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        // Khởi tạo CustomerProductLinkViewModel
+        linkViewModel = new ViewModelProvider(this, new ViewModelProvider.Factory() {
+            @Override
+            public <T extends androidx.lifecycle.ViewModel> T create(@NonNull Class<T> modelClass) {
+                try {
+                    return (T) new CustomerProductLinkViewModel(ProductDetail.this);
+                } catch (IOException | GeneralSecurityException e) {
+                    Log.e("ProductDetail", "Failed to create CustomerProductLinkViewModel", e);
+                    Toast.makeText(ProductDetail.this, "Lỗi tải dữ liệu liên kết", Toast.LENGTH_SHORT).show();
+                    return null; // Trả về null để tránh crash
+                }
+            }
+        }).get(CustomerProductLinkViewModel.class);
+
+        // Quan sát danh sách liên kết với xử lý dữ liệu null
+        if (linkViewModel != null) {
+            linkViewModel.getLinks().observe(this, links -> {
+                Log.d("ProductDetail", "Links loaded: " + (links != null ? links.size() : 0));
+                List<Customer> productCustomers = new ArrayList<>();
+                if (links != null) {
+                    for (CustomerProductLink link : links) {
+                        if (link.getProductId().equals(product.getId())) {
+                            Customer customer = getCustomerById(link.getCustomerId());
+                            Log.d("ProductDetail", "Customer for " + link.getCustomerId() + ": " + (customer != null ? customer.getFullName() : "null"));
+                            if (customer != null) {
+                                productCustomers.add(customer);
+                            }
+                        }
+                    }
+                }
+                Log.d("ProductDetail", "Customers using product " + product.getId() + ": " + productCustomers.size());
+                customerAdapter.setCustomers(productCustomers);
+                if (productCustomers.isEmpty()) {
+                    Toast.makeText(this, "Sản phẩm này chưa có khách hàng sử dụng", Toast.LENGTH_SHORT).show();
+                }
+            });
         }
 
         // Khởi tạo trạng thái ban đầu của các nút
@@ -160,4 +229,15 @@ public class ProductDetail extends AppCompatActivity {
         edtMoTa.setFocusableInTouchMode(isEditable);
         edtMoTa.setClickable(isEditable);
     }
+
+    private Customer getCustomerById(String customerId) {
+        List<Customer> customers = customerRepository.getCustomers().getValue();
+        if (customers != null) {
+            for (Customer customer : customers) {
+                if (customer.getId().equals(customerId)) return customer;
+            }
+        }
+        return null;
+    }
+
 }

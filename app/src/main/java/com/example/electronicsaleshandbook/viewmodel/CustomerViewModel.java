@@ -91,6 +91,7 @@ public class CustomerViewModel extends ViewModel {
         Log.d("CustomerViewModel", "Refreshing customer...");
             searchQuery.postValue("");
             sortOption.postValue(0);
+            repository.invalidateCache();
             repository.refreshCustomers();
     }
 

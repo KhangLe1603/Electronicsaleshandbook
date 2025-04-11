@@ -18,7 +18,7 @@ import com.example.electronicsaleshandbook.viewmodel.ProductViewModel;
 public class AddProductActivity extends AppCompatActivity {
     private EditText edtTenSanPham, edtDonGia, edtGiaBan, edtDonViTinh, edtMoTa;
     private ProductViewModel viewModel;
-    private SheetRepository productRepository;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,7 +69,6 @@ public class AddProductActivity extends AppCompatActivity {
 
                 viewModel.addProduct(name, description, unitPrice, sellingPrice, unit);
                 Toast.makeText(this, "Đang thêm sản phẩm...", Toast.LENGTH_SHORT).show();
-                productRepository.invalidateCache();
                 Intent intent = new Intent();
                 intent.putExtra("REFRESH", true);
                 setResult(RESULT_OK, intent);
