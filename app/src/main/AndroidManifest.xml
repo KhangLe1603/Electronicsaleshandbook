@@ -24,7 +24,7 @@
             android:name=".ui.ProductsView"
             android:exported="false" />
         <activity
-            android:name=".ui.MainActivity"
+            android:name=".ui.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -33,17 +33,17 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".ui.RegisterActivity"
+            android:exported="true" />
+        <activity
             android:name=".ui.Customer_detail"
-            android:exported="true">
-        </activity>
+            android:exported="true" />
         <activity
             android:name=".ui.CustomerList"
-            android:exported="true">
-        </activity>
+            android:exported="true" />
         <activity
             android:name=".ui.AddCustomer"
-            android:exported="true">
-        </activity>
+            android:exported="true" />
     </application>
 
 </manifest>

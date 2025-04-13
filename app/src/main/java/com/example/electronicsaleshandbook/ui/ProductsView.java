@@ -9,6 +9,7 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.content.Intent;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -36,7 +37,7 @@ public class ProductsView extends AppCompatActivity {
     private static final int REQUEST_ADD_CUSTOMER = 3;
     private static final int REQUEST_PRODUCT_DETAIL = 2;
     private static final int REQUEST_ADD_PRODUCT = 1;
-
+    private ImageView userIcon;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -105,6 +106,13 @@ public class ProductsView extends AppCompatActivity {
 
         sortDropdown.setOnItemClickListener((parent, view, position, id) -> {
             viewModel_Product.setSortOption(position); // Cập nhật tiêu chí sắp xếp
+        });
+
+        userIcon = findViewById(R.id.userIcon);
+
+        userIcon.setOnClickListener(v -> {
+            Intent intent = new Intent(ProductsView.this, AccountActivity.class);
+            startActivity(intent);
         });
 
         setupFabMenu();

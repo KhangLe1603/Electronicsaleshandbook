@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -128,6 +129,7 @@ public class CustomerList extends AppCompatActivity {
             searchBar.setText("");
             sortDropdown.setText(sortAdapter.getItem(0), false);
         });
+
 
     }
 
