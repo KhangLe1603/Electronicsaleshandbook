@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="#E8EAF6"
-    android:padding="16dp"
+    android:paddingTop="40dp"
     tools:context=".ui.AccountActivity">
 
     <!-- Thanh tiêu đề -->
