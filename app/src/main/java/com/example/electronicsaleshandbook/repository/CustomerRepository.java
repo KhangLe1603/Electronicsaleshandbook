@@ -24,18 +24,19 @@ import java.util.Collections;
 import java.util.List;
 
 public class CustomerRepository {
+    private static CustomerRepository instance;
     private static final String SPREADSHEET_ID = "1T0vRbdFnjTUTKkgcpbSuvjNnbG9eD49j_xjlknWtj_A";
-    private static final String RANGE = "KhachHang!B2:H"; // Đọc từ B2 tới H
-    private static final long MIN_REFRESH_INTERVAL = 2000; // Giới hạn 2 giây giữa các request
+    private static final String RANGE = "KhachHang!B2:I"; // B: MÃ KH, C: Họ, D: Tên, ..., I: Giới tính
+    private static final long MIN_REFRESH_INTERVAL = 2000;
 
     private final Sheets service;
     private final MutableLiveData<List<Customer>> customersLiveData = new MutableLiveData<>();
-    private List<Customer> cachedCustomers = null; // Cache dữ liệu khách hàng
+    private List<Customer> cachedCustomers = null;
     private long lastRefreshTime = 0;
     private boolean isRefreshing = false;
-    private int requestCount = 0; // Đếm số request
+    private int requestCount = 0;
 
-    public CustomerRepository(Context context) throws IOException, GeneralSecurityException {
+    private CustomerRepository(Context context) throws IOException, GeneralSecurityException {
         try {
             JacksonFactory jsonFactory = JacksonFactory.getDefaultInstance();
             GoogleCredentials credentials = GoogleCredentials.fromStream(
@@ -50,42 +51,49 @@ public class CustomerRepository {
                     .setApplicationName("Customer List App")
                     .build();
 
-            if (cachedCustomers == null) {
-                fetchCustomersWithBackoff(0, 5); // Gọi lần đầu nếu cache trống
-            } else {
-                customersLiveData.postValue(cachedCustomers); // Dùng cache nếu đã có
-            }
+            fetchCustomersWithBackoff(0, 5); // Initial fetch
         } catch (FileNotFoundException e) {
             throw new IOException("Service account file not found in assets", e);
         }
     }
 
+    public static synchronized CustomerRepository getInstance(Context context) throws IOException, GeneralSecurityException {
+        if (instance == null) {
+            instance = new CustomerRepository(context);
+        }
+        return instance;
+    }
+
     public LiveData<List<Customer>> getCustomers() {
+        synchronized (this) {
+            if (isRefreshing) {
+                Log.d("CustomerRepository", "Skipping refresh, already refreshing");
+                return customersLiveData;
+            }
+            if (cachedCustomers != null) {
+                Log.d("CustomerRepository", "Using cached customers, size: " + cachedCustomers.size());
+                customersLiveData.postValue(cachedCustomers);
+                return customersLiveData;
+            }
+            isRefreshing = true;
+        }
+        fetchCustomersWithBackoff(0, 5);
         return customersLiveData;
     }
 
     public void refreshCustomers() {
         synchronized (this) {
-            if (isRefreshing) {
-                Log.d("CustomerRepository", "Skipping refresh, already refreshing");
+            if (System.currentTimeMillis() - lastRefreshTime < MIN_REFRESH_INTERVAL || isRefreshing) {
+                Log.d("CustomerRepository", "Skipping refresh, too soon or already refreshing");
                 if (cachedCustomers != null) {
                     customersLiveData.postValue(cachedCustomers);
                 }
-                return;
-            }
-            // Chỉ làm mới nếu cache đã bị vô hiệu hóa
-            if (cachedCustomers != null) {
-                Log.d("CustomerRepository", "Using cached customers, size: " + cachedCustomers.size());
-                customersLiveData.postValue(cachedCustomers);
                 return;
             }
             isRefreshing = true;
             lastRefreshTime = System.currentTimeMillis();
         }
         fetchCustomersWithBackoff(0, 5);
-        synchronized (this) {
-            isRefreshing = false;
-        }
     }
 
     public Sheets getSheetsService() {
@@ -95,57 +103,76 @@ public class CustomerRepository {
     private void fetchCustomersWithBackoff(int attempt, int maxAttempts) {
         new Thread(() -> {
             try {
-                requestCount++;
-                Log.d("CustomerRepository", "Sending request #" + requestCount);
+                synchronized (this) {
+                    requestCount++;
+                    Log.d("CustomerRepository", "Sending request #" + requestCount + " for customers");
+                }
                 ValueRange response = service.spreadsheets().values()
-                        .get(SPREADSHEET_ID, "KhachHang!A2:I")
+                        .get(SPREADSHEET_ID, RANGE)
                         .execute();
                 List<Customer> customers = new ArrayList<>();
                 List<List<Object>> values = response.getValues();
                 if (values != null) {
                     for (int i = 0; i < values.size(); i++) {
                         List<Object> row = values.get(i);
-                        String id = row.size() > 1 ? row.get(1).toString() : "";
-                        String surname = row.size() > 2 ? row.get(2).toString() : "";
-                        String firstName = row.size() > 3 ? row.get(3).toString() : "";
-                        String address = row.size() > 4 ? row.get(4).toString() : "";
-                        String phone = row.size() > 5 ? row.get(5).toString() : "";
-                        String email = row.size() > 6 ? row.get(6).toString() : "";
-                        String birthday = row.size() > 7 ? row.get(7).toString() : "";
-                        String gender = row.size() > 8 ? row.get(8).toString() : "";
+                        String id = row.size() > 0 ? row.get(0).toString() : ""; // B: MÃ KH
+                        String surname = row.size() > 1 ? row.get(1).toString() : ""; // C: Họ
+                        String firstName = row.size() > 2 ? row.get(2).toString() : ""; // D: Tên
+                        String address = row.size() > 3 ? row.get(3).toString() : ""; // E: Địa chỉ
+                        String phone = row.size() > 4 ? row.get(4).toString() : ""; // F: Phone
+                        String email = row.size() > 5 ? row.get(5).toString() : ""; // G: Email
+                        String birthday = row.size() > 6 ? row.get(6).toString() : ""; // H: Ngày sinh
+                        String gender = row.size() > 7 ? row.get(7).toString() : ""; // I: Giới tính
+                        if (id.isEmpty()) {
+                            Log.w("CustomerRepository", "Skipping invalid row " + (i + 2) + ": id is empty");
+                            continue;
+                        }
                         Customer customer = new Customer(surname, firstName, address, phone, email, birthday, gender);
                         customer.setId(id);
                         customer.setSheetRowIndex(i + 2);
                         customers.add(customer);
+                        Log.d("CustomerRepository", "Parsed customer: id=" + id + ", name=" + firstName);
                     }
+                } else {
+                    Log.d("CustomerRepository", "No customers found in " + RANGE);
                 }
-                cachedCustomers = customers;
-                customersLiveData.postValue(customers);
+                synchronized (this) {
+                    cachedCustomers = customers;
+                    customersLiveData.postValue(customers);
+                    isRefreshing = false;
+                    Log.d("CustomerRepository", "Fetched customers, size: " + customers.size());
+                }
             } catch (GoogleJsonResponseException e) {
+                synchronized (this) {
+                    isRefreshing = false;
+                }
                 if (e.getStatusCode() == 429 && attempt < maxAttempts) {
                     long delay = (long) Math.pow(2, attempt) * 1000;
-                    Log.w("CustomerRepository", "Quota exceeded, retrying in " + delay + "ms (attempt " + (attempt + 1) + "/" + maxAttempts + ")");
+                    Log.w("CustomerRepository", "Quota exceeded, retrying in " + delay + "ms (attempt " + (attempt + 1) + ")");
                     try {
                         Thread.sleep(delay);
                         fetchCustomersWithBackoff(attempt + 1, maxAttempts);
                     } catch (InterruptedException ie) {
                         Log.e("CustomerRepository", "Interrupted during backoff", ie);
-                        if (cachedCustomers != null) customersLiveData.postValue(cachedCustomers);
                     }
                 } else {
-                    Log.e("CustomerRepository", "Error fetching customers: " + e.getStatusCode(), e);
-                    if (cachedCustomers != null) customersLiveData.postValue(cachedCustomers);
+                    Log.e("CustomerRepository", "Error fetching customers: " + e.getStatusCode() + " - " + e.getDetails().getMessage(), e);
+                    customersLiveData.postValue(new ArrayList<>());
                 }
             } catch (IOException e) {
+                synchronized (this) {
+                    isRefreshing = false;
+                }
                 Log.e("CustomerRepository", "IO error fetching customers", e);
-                if (cachedCustomers != null) customersLiveData.postValue(cachedCustomers);
+                customersLiveData.postValue(new ArrayList<>());
             }
         }).start();
     }
 
-    // Phương thức để vô hiệu hóa cache khi có thay đổi
     public void invalidateCache() {
-        cachedCustomers = null;
-        Log.d("CustomerRepository", "Customer cache invalidated");
+        synchronized (this) {
+            cachedCustomers = null;
+            Log.d("CustomerRepository", "Customer cache invalidated");
+        }
     }
 }

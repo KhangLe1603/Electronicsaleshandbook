@@ -6,6 +6,7 @@ import android.util.Log;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.example.electronicsaleshandbook.model.CustomerProductLink;
 import com.example.electronicsaleshandbook.model.Product;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
@@ -23,18 +24,21 @@ import java.util.Collections;
 import java.util.List;
 
 public class SheetRepository {
+    private static SheetRepository instance;
     private static final String SPREADSHEET_ID = "1T0vRbdFnjTUTKkgcpbSuvjNnbG9eD49j_xjlknWtj_A";
-    private static final String RANGE = "Sheet1!B2:F"; // Lấy từ B2 đến F
     private static final long MIN_REFRESH_INTERVAL = 2000; // 2 giây giữa các refresh
 
     private final Sheets service;
     private final MutableLiveData<List<Product>> productsLiveData = new MutableLiveData<>();
-    private List<Product> cachedProducts = null; // Cache dữ liệu sản phẩm
+    private final MutableLiveData<List<CustomerProductLink>> linksLiveData = new MutableLiveData<>();
+    private List<Product> cachedProducts = null;
+    private List<CustomerProductLink> cachedLinks = null;
     private long lastRefreshTime = 0;
-    private boolean isRefreshing = false;
-    private int requestCount = 0; // Đếm số request
+    private boolean isRefreshingProducts = false;
+    private boolean isRefreshingLinks = false;
+    private int requestCount = 0;
 
-    public SheetRepository(Context context) throws IOException, GeneralSecurityException {
+    private SheetRepository(Context context) throws IOException, GeneralSecurityException {
         try {
             GoogleCredential credential = GoogleCredential.fromStream(
                             context.getAssets().open("service_account.json"))
@@ -46,41 +50,72 @@ public class SheetRepository {
                     credential)
                     .setApplicationName("Your App Name")
                     .build();
-            if (cachedProducts == null) {
-                fetchProductsWithBackoff(0, 5); // Lấy dữ liệu lần đầu nếu cache trống
-            } else {
-                productsLiveData.postValue(cachedProducts); // Dùng cache nếu đã có
-            }
         } catch (FileNotFoundException e) {
             throw new IOException("Service account file not found in assets", e);
         }
     }
 
+    public static synchronized SheetRepository getInstance(Context context) throws IOException, GeneralSecurityException {
+        if (instance == null) {
+            instance = new SheetRepository(context);
+        }
+        return instance;
+    }
+
     public LiveData<List<Product>> getProducts() {
+        synchronized (this) {
+            if (isRefreshingProducts) {
+                Log.d("SheetRepository", "Skipping product refresh, already refreshing");
+                return productsLiveData;
+            }
+            if (cachedProducts != null) {
+                Log.d("SheetRepository", "Using cached products, size: " + cachedProducts.size());
+                productsLiveData.postValue(cachedProducts);
+                return productsLiveData;
+            }
+            isRefreshingProducts = true;
+        }
+        fetchProductsWithBackoff(0, 5);
         return productsLiveData;
+    }
+
+    public LiveData<List<CustomerProductLink>> getLinks() {
+        synchronized (this) {
+            if (isRefreshingLinks) {
+                Log.d("SheetRepository", "Skipping link refresh, already refreshing");
+                return linksLiveData;
+            }
+            if (cachedLinks != null) {
+                Log.d("SheetRepository", "Using cached links, size: " + cachedLinks.size());
+                linksLiveData.postValue(cachedLinks);
+                return linksLiveData;
+            }
+            isRefreshingLinks = true;
+        }
+        fetchLinksWithBackoff(0, 5);
+        return linksLiveData;
     }
 
     public void refreshProducts() {
         synchronized (this) {
-            if (isRefreshing) {
-                Log.d("SheetRepository", "Skipping refresh, already refreshing");
+            if (System.currentTimeMillis() - lastRefreshTime < MIN_REFRESH_INTERVAL || isRefreshingProducts) {
+                Log.d("SheetRepository", "Skipping product refresh, too soon or already refreshing");
                 if (cachedProducts != null) {
                     productsLiveData.postValue(cachedProducts);
                 }
                 return;
             }
-            // Chỉ làm mới nếu cache đã bị vô hiệu hóa
-            if (cachedProducts != null) {
-                Log.d("SheetRepository", "Using cached products, size: " + cachedProducts.size());
-                productsLiveData.postValue(cachedProducts);
-                return;
-            }
-            isRefreshing = true;
+            isRefreshingProducts = true;
             lastRefreshTime = System.currentTimeMillis();
         }
         fetchProductsWithBackoff(0, 5);
+    }
+
+    public void invalidateCache() {
         synchronized (this) {
-            isRefreshing = false;
+            cachedProducts = null;
+            cachedLinks = null;
+            Log.d("SheetRepository", "Cache invalidated");
         }
     }
 
@@ -91,8 +126,10 @@ public class SheetRepository {
     private void fetchProductsWithBackoff(int attempt, int maxAttempts) {
         new Thread(() -> {
             try {
-                requestCount++;
-                Log.d("SheetRepository", "Sending request #" + requestCount);
+                synchronized (this) {
+                    requestCount++;
+                    Log.d("SheetRepository", "Sending request #" + requestCount + " for products");
+                }
                 ValueRange response = service.spreadsheets().values()
                         .get(SPREADSHEET_ID, "Sheet1!A2:G")
                         .execute();
@@ -113,33 +150,99 @@ public class SheetRepository {
                         products.add(product);
                     }
                 }
-                cachedProducts = products;
-                productsLiveData.postValue(products);
+                synchronized (this) {
+                    cachedProducts = products;
+                    productsLiveData.postValue(products);
+                    isRefreshingProducts = false;
+                    Log.d("SheetRepository", "Fetched products, size: " + products.size());
+                }
             } catch (GoogleJsonResponseException e) {
+                synchronized (this) {
+                    isRefreshingProducts = false;
+                }
                 if (e.getStatusCode() == 429 && attempt < maxAttempts) {
                     long delay = (long) Math.pow(2, attempt) * 1000;
-                    Log.w("SheetRepository", "Quota exceeded, retrying in " + delay + "ms (attempt " + (attempt + 1) + "/" + maxAttempts + ")");
+                    Log.w("SheetRepository", "Quota exceeded, retrying in " + delay + "ms (attempt " + (attempt + 1) + ")");
                     try {
                         Thread.sleep(delay);
                         fetchProductsWithBackoff(attempt + 1, maxAttempts);
                     } catch (InterruptedException ie) {
                         Log.e("SheetRepository", "Interrupted during backoff", ie);
-                        if (cachedProducts != null) productsLiveData.postValue(cachedProducts);
                     }
                 } else {
                     Log.e("SheetRepository", "Error fetching products: " + e.getStatusCode(), e);
-                    if (cachedProducts != null) productsLiveData.postValue(cachedProducts);
                 }
             } catch (IOException e) {
+                synchronized (this) {
+                    isRefreshingProducts = false;
+                }
                 Log.e("SheetRepository", "IO error fetching products", e);
-                if (cachedProducts != null) productsLiveData.postValue(cachedProducts);
             }
         }).start();
     }
 
-    // Phương thức để vô hiệu hóa cache khi có thay đổi
-    public void invalidateCache() {
-        cachedProducts = null;
-        Log.d("SheetRepository", "Product cache invalidated");
+    private void fetchLinksWithBackoff(int attempt, int maxAttempts) {
+        new Thread(() -> {
+            try {
+                synchronized (this) {
+                    requestCount++;
+                    Log.d("SheetRepository", "Sending request #" + requestCount + " for links");
+                }
+                // Changed range to B2:C to fetch MÃ KH (customerId) and MÃ SP (productId)
+                ValueRange response = service.spreadsheets().values()
+                        .get(SPREADSHEET_ID, "CustomerProductLink!B2:C")
+                        .execute();
+                List<CustomerProductLink> links = new ArrayList<>();
+                List<List<Object>> values = response.getValues();
+                if (values != null) {
+                    for (int i = 0; i < values.size(); i++) {
+                        List<Object> row = values.get(i);
+                        // Column B: MÃ KH (customerId)
+                        String customerId = row.size() > 0 ? row.get(0).toString() : "";
+                        // Column C: MÃ SP (productId)
+                        String productId = row.size() > 1 ? row.get(1).toString() : "";
+                        if (customerId.isEmpty() || productId.isEmpty()) {
+                            Log.w("SheetRepository", "Skipping invalid row " + (i + 2) + ": customerId=" + customerId + ", productId=" + productId);
+                            continue;
+                        }
+                        CustomerProductLink link = new CustomerProductLink(customerId, productId);
+                        link.setSheetRowIndex(i + 2);
+                        links.add(link);
+                        Log.d("SheetRepository", "Parsed link: customerId=" + customerId + ", productId=" + productId);
+                    }
+                } else {
+                    Log.d("SheetRepository", "No links found in CustomerProductLink!B2:C");
+                }
+                synchronized (this) {
+                    cachedLinks = links;
+                    linksLiveData.postValue(links);
+                    isRefreshingLinks = false;
+                    Log.d("SheetRepository", "Fetched links, size: " + links.size());
+                }
+            } catch (GoogleJsonResponseException e) {
+                synchronized (this) {
+                    isRefreshingLinks = false;
+                }
+                if (e.getStatusCode() == 429 && attempt < maxAttempts) {
+                    long delay = (long) Math.pow(2, attempt) * 1000;
+                    Log.w("SheetRepository", "Quota exceeded, retrying in " + delay + "ms (attempt " + (attempt + 1) + ")");
+                    try {
+                        Thread.sleep(delay);
+                        fetchLinksWithBackoff(attempt + 1, maxAttempts);
+                    } catch (InterruptedException ie) {
+                        Log.e("SheetRepository", "Interrupted during backoff", ie);
+                    }
+                } else {
+                    Log.e("SheetRepository", "Error fetching links: " + e.getStatusCode() + " - " + e.getDetails().getMessage(), e);
+                    linksLiveData.postValue(new ArrayList<>()); // Return empty list to prevent UI issues
+                }
+            } catch (IOException e) {
+                synchronized (this) {
+                    isRefreshingLinks = false;
+                }
+                Log.e("SheetRepository", "IO error fetching links", e);
+                linksLiveData.postValue(new ArrayList<>()); // Return empty list to prevent UI issues
+            }
+        }).start();
     }
 }

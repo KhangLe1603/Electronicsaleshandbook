@@ -32,7 +32,7 @@ public class CustomerViewModel extends ViewModel {
 
     public CustomerViewModel(Context context) {
         try {
-            repository = new CustomerRepository(context);
+            repository = CustomerRepository.getInstance(context);
             allCustomers = repository.getCustomers();
         } catch (IOException | GeneralSecurityException e) {
             throw new RuntimeException("Failed to initialize repository", e);

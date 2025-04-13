@@ -3,27 +3,31 @@ package com.example.electronicsaleshandbook.ui;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.electronicsaleshandbook.R;
+import com.example.electronicsaleshandbook.adapter.ProductDetailAdapter;
 import com.example.electronicsaleshandbook.model.Customer;
 import com.example.electronicsaleshandbook.model.CustomerProductLink;
 import com.example.electronicsaleshandbook.model.Product;
 import com.example.electronicsaleshandbook.repository.SheetRepository;
 import com.example.electronicsaleshandbook.viewmodel.CustomerProductLinkViewModel;
 import com.example.electronicsaleshandbook.viewmodel.CustomerViewModel;
-import com.example.electronicsaleshandbook.R;
-import com.example.electronicsaleshandbook.adapter.ProductDetailAdapter;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -31,13 +35,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Customer_detail extends AppCompatActivity {
-    private EditText etPhone, etEmail, etBirthday, etAddress, etGender,editId;
+    private EditText etPhone, etEmail, etBirthday, etAddress, etGender, editId;
     private Button btnSua, btnLuu, btnXoa;
     private CustomerViewModel viewModel;
     private Customer customer;
     private TextView tvCustomerName;
     private RecyclerView productsRecyclerView;
-    private ProductDetailAdapter productAdapter; // Dùng adapter mới
+    private ProgressBar progressBar;
+    private ProductDetailAdapter productAdapter;
     private CustomerProductLinkViewModel linkViewModel;
     private SheetRepository productRepository;
 
@@ -77,14 +82,16 @@ public class Customer_detail extends AppCompatActivity {
         } else {
             Toast.makeText(this, "Không tìm thấy khách hàng", Toast.LENGTH_SHORT).show();
             finish();
+            return;
         }
 
         // Khởi tạo RecyclerView và Adapter
-        productAdapter = new ProductDetailAdapter(); // Dùng adapter mới
+        productAdapter = new ProductDetailAdapter();
         productsRecyclerView.setAdapter(productAdapter);
         productsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         try {
+            productRepository = SheetRepository.getInstance(this);
             linkViewModel = new ViewModelProvider(this, new ViewModelProvider.Factory() {
                 @Override
                 public <T extends androidx.lifecycle.ViewModel> T create(@NonNull Class<T> modelClass) {
@@ -93,13 +100,10 @@ public class Customer_detail extends AppCompatActivity {
                     } catch (IOException | GeneralSecurityException e) {
                         Log.e("Customer_detail", "Failed to create CustomerProductLinkViewModel", e);
                         Toast.makeText(Customer_detail.this, "Lỗi tải dữ liệu liên kết", Toast.LENGTH_SHORT).show();
-                        return null; // Trả về null để tránh crash, nhưng cần xử lý thêm
+                        return null;
                     }
                 }
             }).get(CustomerProductLinkViewModel.class);
-
-            productRepository = new SheetRepository(this);
-            productRepository.refreshProducts();
         } catch (IOException | GeneralSecurityException e) {
             Log.e("Customer_detail", "Failed to initialize repositories", e);
             Toast.makeText(this, "Không thể kết nối đến dữ liệu", Toast.LENGTH_SHORT).show();
@@ -107,30 +111,21 @@ public class Customer_detail extends AppCompatActivity {
             return;
         }
 
-        // Quan sát danh sách liên kết với xử lý dữ liệu null
-        if (linkViewModel != null) {
-            linkViewModel.getLinks().observe(this, links -> {
-                Log.d("Customer_detail", "Links loaded: " + (links != null ? links.size() : 0));
-                List<Product> customerProducts = new ArrayList<>();
-                if (links != null) {
-                    for (CustomerProductLink link : links) {
-                        Log.d("Customer_detail", "Links loaded: " + (links != null ? links.size() : 0));
-                        if (link.getCustomerId().equals(customer.getId())) {
-                            Product product = getProductById(link.getProductId());
-                            Log.d("Customer_detail", "Product for " + link.getProductId() + ": " + (product != null ? product.getName() : "null"));
-                            if (product != null) {
-                                customerProducts.add(product);
-                            }
-                        }
-                    }
-                }
-                Log.d("Customer_detail", "Products used by customer " + customer.getId() + ": " + customerProducts.size());
-                productAdapter.setProducts(customerProducts);
-                if (customerProducts.isEmpty()) {
-                    Toast.makeText(this, "Khách hàng chưa sử dụng sản phẩm nào", Toast.LENGTH_SHORT).show();
-                }
-            });
-        }
+        // Đồng bộ sản phẩm và liên kết
+        MediatorLiveData<List<Product>> customerProductsLiveData = new MediatorLiveData<>();
+        LiveData<List<Product>> productsLiveData = productRepository.getProducts();
+        LiveData<List<CustomerProductLink>> linksLiveData = linkViewModel.getLinks();
+
+        customerProductsLiveData.addSource(productsLiveData, products -> combineData(customerProductsLiveData, products, linksLiveData.getValue()));
+        customerProductsLiveData.addSource(linksLiveData, links -> combineData(customerProductsLiveData, productsLiveData.getValue(), links));
+
+        customerProductsLiveData.observe(this, customerProducts -> {
+            Log.d("Customer_detail", "Products used by customer " + customer.getId() + ": " + customerProducts.size());
+            productAdapter.setProducts(customerProducts);
+            if (customerProducts.isEmpty()) {
+                Toast.makeText(this, "Khách hàng chưa sử dụng sản phẩm nào", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         btnLuu.setEnabled(false);
         btnLuu.setAlpha(0.5f);
@@ -230,11 +225,28 @@ public class Customer_detail extends AppCompatActivity {
         etGender.setFocusableInTouchMode(isEditable);
         etGender.setClickable(isEditable);
     }
-    private Product getProductById(String productId) {
-        List<Product> products = productRepository.getProducts().getValue();
-        if (products != null) {
-            for (Product product : products) {
-                if (product.getId().equals(productId)) return product;
+
+    private void combineData(MediatorLiveData<List<Product>> customerProductsLiveData,
+                             List<Product> products, List<CustomerProductLink> links) {
+        if (products == null || links == null) {
+            return;
+        }
+        List<Product> customerProducts = new ArrayList<>();
+        for (CustomerProductLink link : links) {
+            if (link.getCustomerId().equals(customer.getId())) {
+                Product product = getProductById(link.getProductId(), products);
+                if (product != null) {
+                    customerProducts.add(product);
+                }
+            }
+        }
+        customerProductsLiveData.setValue(customerProducts);
+    }
+
+    private Product getProductById(String productId, List<Product> products) {
+        for (Product product : products) {
+            if (product.getId().equals(productId)) {
+                return product;
             }
         }
         return null;

@@ -57,7 +57,7 @@
             android:id="@+id/tvCustomerName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="15dp"
+            android:layout_marginTop="10dp"
             android:gravity="center"
             android:text="Lê Văn A"
             android:textSize="20dp"
@@ -70,15 +70,12 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="10dp"
-            android:layout_marginTop="20dp">
+            android:layout_marginTop="10dp">
 
-            <!-- Dữ liệu từng dòng -->
-            <!-- Copy đoạn bạn đã có trước đó (sdt, email, ngày sinh,...) -->
-            <!-- Số điện thoại -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
+                android:layout_marginBottom="10dp"
                 android:orientation="horizontal">
 
                 <TextView
@@ -295,7 +292,9 @@
             android:id="@+id/products_recycler_view"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:contentDescription="Danh sách sản phẩm dùng"
+            android:padding="10dp"/>
 
     </LinearLayout>
 

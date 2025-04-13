@@ -32,7 +32,7 @@ public class ProductViewModel extends ViewModel {
 
     public ProductViewModel(Context context) {
         try {
-            repository = new SheetRepository(context);
+            repository = SheetRepository.getInstance(context);
             allProducts = repository.getProducts();
         } catch (IOException | GeneralSecurityException e) {
             throw new RuntimeException("Failed to initialize repository", e);
