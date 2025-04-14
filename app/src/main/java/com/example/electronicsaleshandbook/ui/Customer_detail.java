@@ -1,5 +1,6 @@
 package com.example.electronicsaleshandbook.ui;
 
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -31,8 +32,11 @@ import com.example.electronicsaleshandbook.viewmodel.CustomerViewModel;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 public class Customer_detail extends AppCompatActivity {
     private EditText etPhone, etEmail, etBirthday, etAddress, etGender, editId;
@@ -41,7 +45,6 @@ public class Customer_detail extends AppCompatActivity {
     private Customer customer;
     private TextView tvCustomerName;
     private RecyclerView productsRecyclerView;
-    private ProgressBar progressBar;
     private ProductDetailAdapter productAdapter;
     private CustomerProductLinkViewModel linkViewModel;
     private SheetRepository productRepository;
@@ -135,6 +138,7 @@ public class Customer_detail extends AppCompatActivity {
         btnXoa.setAlpha(1.0f);
         setEditMode(false);
 
+
         btnSua.setOnClickListener(v -> {
             setEditMode(true);
             btnLuu.setEnabled(true);
@@ -216,6 +220,12 @@ public class Customer_detail extends AppCompatActivity {
         etBirthday.setFocusable(isEditable);
         etBirthday.setFocusableInTouchMode(isEditable);
         etBirthday.setClickable(isEditable);
+        // Chỉ gán OnClickListener khi ở chế độ chỉnh sửa
+        if (isEditable) {
+            etBirthday.setOnClickListener(v -> showDatePickerDialog());
+        } else {
+            etBirthday.setOnClickListener(null); // Xóa listener khi không chỉnh sửa
+        }
 
         etAddress.setFocusable(isEditable);
         etAddress.setFocusableInTouchMode(isEditable);
@@ -250,5 +260,42 @@ public class Customer_detail extends AppCompatActivity {
             }
         }
         return null;
+    }
+
+    private void showDatePickerDialog() {
+        // Lấy ngày hiện tại làm mặc định
+        Calendar calendar = Calendar.getInstance();
+        int year = calendar.get(Calendar.YEAR);
+        int month = calendar.get(Calendar.MONTH);
+        int day = calendar.get(Calendar.DAY_OF_MONTH);
+
+        // Nếu etBirthday đã có giá trị, parse để đặt ngày mặc định
+        String birthdayText = etBirthday.getText().toString().trim();
+        if (!birthdayText.isEmpty()) {
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                calendar.setTime(sdf.parse(birthdayText));
+                year = calendar.get(Calendar.YEAR);
+                month = calendar.get(Calendar.MONTH);
+                day = calendar.get(Calendar.DAY_OF_MONTH);
+            } catch (Exception e) {
+                Log.e("Customer_detail", "Invalid birthday format: " + birthdayText, e);
+            }
+        }
+
+        // Tạo DatePickerDialog
+        DatePickerDialog datePickerDialog = new DatePickerDialog(
+                this,
+                (view, selectedYear, selectedMonth, selectedDay) -> {
+                    // Định dạng ngày thành dd/MM/yyyy
+                    String formattedDate = String.format(Locale.getDefault(), "%02d/%02d/%d",
+                            selectedDay, selectedMonth + 1, selectedYear);
+                    etBirthday.setText(formattedDate);
+                },
+                year, month, day);
+
+        // Giới hạn ngày tối đa là hôm nay
+        datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
+        datePickerDialog.show();
     }
 }

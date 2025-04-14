@@ -19,7 +19,7 @@ import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
+import java.text.DecimalFormat;
 import com.example.electronicsaleshandbook.R;
 import com.example.electronicsaleshandbook.model.Customer;
 import com.example.electronicsaleshandbook.model.CustomerProductLink;
@@ -39,10 +39,10 @@ public class ProductDetail extends AppCompatActivity {
     private ProductViewModel viewModel;
     private Product product;
     private RecyclerView customersRecyclerView;
-    private ProgressBar progressBar;
     private CustomerDetailAdapter customerAdapter;
     private CustomerProductLinkViewModel linkViewModel;
     private CustomerRepository customerRepository;
+    private final DecimalFormat decimalFormat = new DecimalFormat("#,###");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -192,8 +192,26 @@ public class ProductDetail extends AppCompatActivity {
         editId.setText(product.getId());
         editId.setEnabled(false);
         edtTenSanPham.setText(product.getName());
-        edtDonGia.setText(product.getUnitPrice());
-        edtGiaBan.setText(product.getPrice());
+        String unitPriceRaw = product.getUnitPrice() != null ? product.getUnitPrice().trim().replaceAll("[^0-9]", "") : "";
+        String sellingPriceRaw = product.getPrice() != null ? product.getPrice().trim().replaceAll("[^0-9]", "") : "";
+        try {
+            if (!unitPriceRaw.isEmpty()) {
+                String formattedUnitPrice = decimalFormat.format(Long.parseLong(unitPriceRaw));
+                edtDonGia.setText(formattedUnitPrice);
+            } else {
+                edtDonGia.setText("0");
+            }
+            if (!sellingPriceRaw.isEmpty()) {
+                String formattedSellingPrice = decimalFormat.format(Long.parseLong(sellingPriceRaw));
+                edtGiaBan.setText(formattedSellingPrice);
+            } else {
+                edtGiaBan.setText("0");
+            }
+        } catch (NumberFormatException e) {
+            Log.e("ProductDetail", "Invalid price format: " + e.getMessage());
+            edtDonGia.setText(unitPriceRaw.isEmpty() ? "0" : unitPriceRaw);
+            edtGiaBan.setText(sellingPriceRaw.isEmpty() ? "0" : sellingPriceRaw);
+        }
         edtDonViTinh.setText(product.getUnit());
         edtMoTa.setText(product.getDescription());
     }

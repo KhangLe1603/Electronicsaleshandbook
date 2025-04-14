@@ -53,11 +53,6 @@ public class LoginActivity extends AppCompatActivity {
         // Observe authentication result
         viewModel.getAuthResult().observe(this, authResult -> {
             Toast.makeText(LoginActivity.this, authResult.getMessage(), Toast.LENGTH_SHORT).show();
-            if (authResult.isSuccess()) {
-                Intent intent = new Intent(LoginActivity.this, ProductsView.class); // Replace with your main activity
-                startActivity(intent);
-                finish();
-            }
         });
 
         // Observe current user

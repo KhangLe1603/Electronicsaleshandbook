@@ -59,4 +59,6 @@ dependencies {
     implementation(libs.lifecycle.viewmodel)
 
     implementation(libs.picasso)
+
+    implementation(libs.firebase.firestore)
 }

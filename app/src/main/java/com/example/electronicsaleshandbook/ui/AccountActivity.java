@@ -65,8 +65,9 @@ public class AccountActivity extends AppCompatActivity {
         // Nút đăng xuất
         logoutButton.setOnClickListener(v -> {
             viewModel.signOut();
-            Toast.makeText(this, "Đã đăng xuất", Toast.LENGTH_SHORT).show();
+            Toast.makeText(AccountActivity.this, "Đã đăng xuất", Toast.LENGTH_SHORT).show();
             Intent intent = new Intent(AccountActivity.this, LoginActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
             finish();
         });

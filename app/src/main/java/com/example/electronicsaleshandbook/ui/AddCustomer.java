@@ -1,7 +1,9 @@
 package com.example.electronicsaleshandbook.ui;
 
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -13,6 +15,10 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.electronicsaleshandbook.viewmodel.CustomerViewModel;
 import com.example.electronicsaleshandbook.R;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Locale;
 
 public class AddCustomer extends AppCompatActivity {
     private EditText etSurName, etFirstName, etPhone, etEmail, etBirthday, etAddress, etGender;
@@ -50,6 +56,8 @@ public class AddCustomer extends AppCompatActivity {
         // Xử lý nút Back
         btnBack.setOnClickListener(v -> finish());
 
+        etBirthday.setOnClickListener(v -> showDatePickerDialog());
+
         // Xử lý nút Thêm
         btnAdd.setOnClickListener(v -> {
             String surname = etSurName.getText().toString().trim();
@@ -79,5 +87,44 @@ public class AddCustomer extends AppCompatActivity {
 
         // Xử lý nút Huỷ
         btnCancel.setOnClickListener(v -> finish());
+
+
+    }
+
+    private void showDatePickerDialog() {
+        // Lấy ngày hiện tại làm mặc định
+        Calendar calendar = Calendar.getInstance();
+        int year = calendar.get(Calendar.YEAR);
+        int month = calendar.get(Calendar.MONTH);
+        int day = calendar.get(Calendar.DAY_OF_MONTH);
+
+        // Nếu etBirthday đã có giá trị, parse để đặt ngày mặc định
+        String birthdayText = etBirthday.getText().toString().trim();
+        if (!birthdayText.isEmpty()) {
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                calendar.setTime(sdf.parse(birthdayText));
+                year = calendar.get(Calendar.YEAR);
+                month = calendar.get(Calendar.MONTH);
+                day = calendar.get(Calendar.DAY_OF_MONTH);
+            } catch (Exception e) {
+                Log.e("Customer_detail", "Invalid birthday format: " + birthdayText, e);
+            }
+        }
+
+        // Tạo DatePickerDialog
+        DatePickerDialog datePickerDialog = new DatePickerDialog(
+                this,
+                (view, selectedYear, selectedMonth, selectedDay) -> {
+                    // Định dạng ngày thành dd/MM/yyyy
+                    String formattedDate = String.format(Locale.getDefault(), "%02d/%02d/%d",
+                            selectedDay, selectedMonth + 1, selectedYear);
+                    etBirthday.setText(formattedDate);
+                },
+                year, month, day);
+
+        // Giới hạn ngày tối đa là hôm nay
+        datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
+        datePickerDialog.show();
     }
 }
