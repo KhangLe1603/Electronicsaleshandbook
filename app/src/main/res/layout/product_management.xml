@@ -6,8 +6,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="#E8EAF6"
-    android:paddingTop="40dp"
-    tools:context=".ui.MainActivity">
+    tools:context=".ui.MainActivity"
+    android:id="@+id/ProductList_Layout">
 
     <!-- Thanh tiêu đề -->
     <RelativeLayout

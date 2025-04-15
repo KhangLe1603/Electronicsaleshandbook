@@ -4,6 +4,7 @@ import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -15,21 +16,40 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.electronicsaleshandbook.viewmodel.CustomerViewModel;
 import com.example.electronicsaleshandbook.R;
+import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.graphics.Insets;
+import android.view.View;
 
 public class AddCustomer extends AppCompatActivity {
-    private EditText etSurName, etFirstName, etPhone, etEmail, etBirthday, etAddress, etGender;
+    private EditText etSurName, etFirstName, etPhone, etEmail, etBirthday, etAddress;
     private Button btnAdd, btnCancel;
     private ImageButton btnBack;
     private CustomerViewModel viewModel;
+    private MaterialAutoCompleteTextView etGender;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_customer);
+
+        View addCustomerLayout = findViewById(R.id.addCustomer);
+
+        ViewCompat.setOnApplyWindowInsetsListener(addCustomerLayout, (v, insets) -> {
+            Insets statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.statusBars());
+            v.setPadding(
+                    v.getPaddingLeft(),
+                    statusBarInsets.top,  // dùng đúng khoảng cách status bar thực tế
+                    v.getPaddingRight(),
+                    v.getPaddingBottom()
+            );
+            return insets;
+        });
 
         // Khởi tạo các view
         etSurName = findViewById(R.id.etSurName);
@@ -57,6 +77,14 @@ public class AddCustomer extends AppCompatActivity {
         btnBack.setOnClickListener(v -> finish());
 
         etBirthday.setOnClickListener(v -> showDatePickerDialog());
+
+        String[] genderOptions = {"Nam", "Nữ"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_dropdown_item_1line,
+                genderOptions
+        );
+        etGender.setAdapter(adapter);
 
         // Xử lý nút Thêm
         btnAdd.setOnClickListener(v -> {

@@ -6,8 +6,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="#F1F1FF"
-    android:paddingTop="40dp"
-    tools:context=".ui.AddProductActivity">
+    tools:context=".ui.AddProductActivity"
+    android:id="@+id/addProduct">
 
     <!-- Toolbar -->
     <androidx.appcompat.widget.Toolbar

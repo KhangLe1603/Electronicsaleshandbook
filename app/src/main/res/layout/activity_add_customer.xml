@@ -2,11 +2,10 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingTop="40dp"
-    tools:context=".ui.AddCustomer">
+    tools:context=".ui.AddCustomer"
+    android:id="@+id/addCustomer">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -256,17 +255,35 @@
                     android:textStyle="bold"
                     android:gravity="center_vertical" />
 
-                <EditText
-                    android:id="@+id/etGender"
+                <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="2"
+                    android:layout_height="wrap_content"
                     android:layout_marginStart="12dp"
-                    android:background="@null"
-                    android:hint="Nhập giới tính"
-                    android:inputType="text"
-                    android:textSize="16sp" />
+                    android:layout_weight="2"
+                    app:endIconMode="dropdown_menu"
+                    app:boxBackgroundColor="#FFFFFF"
+                    app:boxCornerRadiusTopStart="18dp"
+                    app:boxCornerRadiusTopEnd="18dp"
+                    app:boxCornerRadiusBottomStart="18dp"
+                    app:boxCornerRadiusBottomEnd="18dp"
+                    app:boxStrokeColor="#000000"
+                    android:hint="Chọn giới tính"
+                    app:boxStrokeWidth="1dp"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
+
+                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                        android:id="@+id/etGender"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:inputType="none"
+                        android:textSize="16sp"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:textColor="#000"
+                        android:importantForAccessibility="no"/>
+                </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
+
 
             <LinearLayout
                 android:id="@+id/layoutButtons"

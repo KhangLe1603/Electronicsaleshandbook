@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -29,6 +30,7 @@ import com.example.electronicsaleshandbook.model.Product;
 import com.example.electronicsaleshandbook.repository.SheetRepository;
 import com.example.electronicsaleshandbook.viewmodel.CustomerProductLinkViewModel;
 import com.example.electronicsaleshandbook.viewmodel.CustomerViewModel;
+import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -37,9 +39,12 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.graphics.Insets;
 
 public class Customer_detail extends AppCompatActivity {
-    private EditText etPhone, etEmail, etBirthday, etAddress, etGender, editId;
+    private EditText etPhone, etEmail, etBirthday, etAddress, editId;
     private Button btnSua, btnLuu, btnXoa;
     private CustomerViewModel viewModel;
     private Customer customer;
@@ -48,15 +53,28 @@ public class Customer_detail extends AppCompatActivity {
     private ProductDetailAdapter productAdapter;
     private CustomerProductLinkViewModel linkViewModel;
     private SheetRepository productRepository;
+    private MaterialAutoCompleteTextView etGender;
+    private boolean isEditing = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.customer_detail);
 
+        View customerLayout = findViewById(R.id.customer_Detail);
+        ViewCompat.setOnApplyWindowInsetsListener(customerLayout, (v, insets) -> {
+            Insets statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.statusBars());
+            v.setPadding(
+                    v.getPaddingLeft(),
+                    statusBarInsets.top,  // dùng đúng khoảng cách status bar thực tế
+                    v.getPaddingRight(),
+                    v.getPaddingBottom()
+            );
+            return insets;
+        });
+
         ImageButton btnBack = findViewById(R.id.imageButton);
         btnBack.setOnClickListener(v -> finish());
-
         editId = findViewById(R.id.etMaKH);
         tvCustomerName = findViewById(R.id.tvCustomerName);
         etPhone = findViewById(R.id.etPhone);
@@ -87,6 +105,14 @@ public class Customer_detail extends AppCompatActivity {
             finish();
             return;
         }
+
+        String[] genderOptions = {"Nam", "Nữ"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_dropdown_item_1line,
+                genderOptions
+        );
+        etGender.setAdapter(adapter);
 
         // Khởi tạo RecyclerView và Adapter
         productAdapter = new ProductDetailAdapter();
@@ -145,9 +171,14 @@ public class Customer_detail extends AppCompatActivity {
             btnLuu.setAlpha(1.0f);
             btnSua.setEnabled(false);
             btnSua.setAlpha(0.5f);
-            btnXoa.setEnabled(false);
-            btnXoa.setAlpha(0.5f);
+
+            // Chuyển nút Xoá thành nút Huỷ
+            btnXoa.setText("Huỷ");
+            btnXoa.setAlpha(1.0f);
+            btnXoa.setEnabled(true);
+            isEditing = true;
         });
+
 
         btnLuu.setOnClickListener(v -> {
             String phone = etPhone.getText().toString().trim();
@@ -171,6 +202,8 @@ public class Customer_detail extends AppCompatActivity {
             btnSua.setAlpha(1.0f);
             btnXoa.setEnabled(true);
             btnXoa.setAlpha(1.0f);
+            isEditing = false;
+            btnXoa.setText("Xóa");
 
             Intent intent = new Intent();
             intent.putExtra("REFRESH", true);
@@ -179,6 +212,26 @@ public class Customer_detail extends AppCompatActivity {
         });
 
         btnXoa.setOnClickListener(v -> {
+            if (isEditing) {
+                // Đang ở chế độ sửa → giờ là nút Huỷ
+                setEditMode(false);
+                btnLuu.setEnabled(false);
+                btnLuu.setAlpha(0.5f);
+                btnSua.setEnabled(true);
+                btnSua.setAlpha(1.0f);
+
+                // Khôi phục dữ liệu ban đầu
+                displayCustomerDetails();
+
+                // Đổi lại nút Huỷ thành Xoá
+                btnXoa.setText("Xoá");
+                btnXoa.setAlpha(1.0f);
+                btnXoa.setEnabled(true);
+                isEditing = false;
+                return;
+            }
+
+            // Không phải đang sửa → xử lý xoá thật
             new AlertDialog.Builder(this)
                     .setTitle("Xác nhận xóa")
                     .setMessage("Bạn có chắc chắn muốn xóa khách hàng này không?")
@@ -195,6 +248,7 @@ public class Customer_detail extends AppCompatActivity {
                     .setCancelable(true)
                     .show();
         });
+
     }
 
     private void displayCustomerDetails() {
@@ -206,6 +260,7 @@ public class Customer_detail extends AppCompatActivity {
         etBirthday.setText(customer.getBirthday());
         etAddress.setText(customer.getAddress());
         etGender.setText(customer.getGender());
+
     }
 
     private void setEditMode(boolean isEditable) {
@@ -231,9 +286,20 @@ public class Customer_detail extends AppCompatActivity {
         etAddress.setFocusableInTouchMode(isEditable);
         etAddress.setClickable(isEditable);
 
-        etGender.setFocusable(isEditable);
-        etGender.setFocusableInTouchMode(isEditable);
-        etGender.setClickable(isEditable);
+//        etGender.setFocusable(isEditable);
+//        etGender.setFocusableInTouchMode(isEditable);
+//        etGender.setClickable(isEditable);
+
+        etGender.setFocusable(false); // luôn không cho nhập tay
+        etGender.setFocusableInTouchMode(false);
+        etGender.setClickable(isEditable); // chỉ cho bấm khi đang sửa
+        if (isEditable) {
+            etGender.setOnClickListener(v -> etGender.showDropDown());
+        } else {
+            etGender.setOnClickListener(null); // không cho hiển thị dropdown khi không sửa
+        }
+
+
     }
 
     private void combineData(MediatorLiveData<List<Product>> customerProductsLiveData,

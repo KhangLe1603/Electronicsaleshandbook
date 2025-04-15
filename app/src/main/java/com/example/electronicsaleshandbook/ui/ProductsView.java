@@ -24,6 +24,10 @@ import com.example.electronicsaleshandbook.viewmodel.ProductViewModel;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.graphics.Insets;
+
 public class ProductsView extends AppCompatActivity {
 
     private ProductViewModel viewModel_Product;
@@ -42,6 +46,18 @@ public class ProductsView extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.product_management);
+
+        View ProductListLayout = findViewById(R.id.ProductList_Layout);
+        ViewCompat.setOnApplyWindowInsetsListener(ProductListLayout, (v, insets) -> {
+            Insets statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.statusBars());
+            v.setPadding(
+                    v.getPaddingLeft(),
+                    statusBarInsets.top,  // dùng đúng khoảng cách status bar thực tế
+                    v.getPaddingRight(),
+                    v.getPaddingBottom()
+            );
+            return insets;
+        });
 
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
         adapter = new ProductAdapter();
@@ -80,7 +96,7 @@ public class ProductsView extends AppCompatActivity {
                 new Handler(Looper.getMainLooper()).postDelayed(() -> {
                     Log.d("ProductsView", "Retrying refresh due to unchanged size, attempt " + retryCount + "/" + MAX_RETRIES);
                     viewModel_Product.refreshProducts();
-                }, 2000);
+                }, 1000);
             } else {
                 expectingChange = false;
                 retryCount = 0; // Reset sau khi thành công hoặc hết retry

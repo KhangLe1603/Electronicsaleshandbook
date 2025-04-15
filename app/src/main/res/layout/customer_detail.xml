@@ -2,10 +2,9 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
+    android:id="@+id/customer_Detail"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingTop="40dp"
     tools:context=".ui.Customer_detail">
 
     <LinearLayout
@@ -15,43 +14,50 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <!-- Tên khách hàng -->
-        <FrameLayout
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar2"
             android:layout_width="match_parent"
-            android:layout_height="180dp">
-            <!-- Avatar -->
-            <View
+            android:layout_height="wrap_content"
+            android:background="@color/dark_blue"
+            android:minHeight="?attr/actionBarSize"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="137dp"
-                android:layout_gravity="top|center"
-                android:alpha="0.5"
-                android:background="@drawable/background_avatar" />
-
-            <ImageView
-                android:id="@+id/imageView"
-                android:layout_width="120dp"
-                android:layout_height="120dp"
-                android:layout_gravity="bottom|center"
-                android:scaleType="centerCrop"
-                android:src="@drawable/avatar" />
-
-            <FrameLayout
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_marginTop="20dp"
-                android:layout_marginLeft="15dp"
-                android:clickable="true"
-                android:foreground="?attr/selectableItemBackground">
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
 
                 <ImageButton
                     android:id="@+id/imageButton"
-                    android:layout_width="43dp"
-                    android:layout_height="33dp"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
                     android:layout_gravity="center"
                     android:background="@null"
+                    android:contentDescription="Trở về"
                     app:srcCompat="@drawable/back"
-                    android:contentDescription="Trở về"/>
-            </FrameLayout>
-        </FrameLayout>
+                    app:tint="@android:color/white"/>
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="CHI TIẾT KHÁCH HÀNG"
+                    android:textColor="@android:color/white"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:textSize="16sp" />
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/account"
+                    android:contentDescription="User Icon"
+                    app:tint="@android:color/white"
+                    android:layout_marginEnd="8dp"/>
+            </LinearLayout>
+
+        </androidx.appcompat.widget.Toolbar>
 
         <TextView
             android:id="@+id/tvCustomerName"
@@ -232,17 +238,35 @@
                     android:textStyle="bold"
                     android:gravity="center_vertical" />
 
-                <EditText
-                    android:id="@+id/etGender"
+                <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="2"
+                    android:layout_height="wrap_content"
                     android:layout_marginStart="12dp"
-                    android:background="@android:drawable/editbox_background"
-                    android:hint="Nhập giới tính"
-                    android:inputType="text"
-                    android:textSize="16sp" />
+                    android:layout_weight="2"
+                    app:endIconMode="dropdown_menu"
+                    app:boxBackgroundColor="#FFFFFF"
+                    app:boxCornerRadiusTopStart="18dp"
+                    app:boxCornerRadiusTopEnd="18dp"
+                    app:boxCornerRadiusBottomStart="18dp"
+                    app:boxCornerRadiusBottomEnd="18dp"
+                    app:boxStrokeColor="#000000"
+                    app:boxStrokeWidth="1dp"
+                    android:hint="Chọn giới tính"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
+
+                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                        android:id="@+id/etGender"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:inputType="none"
+                        android:textSize="16sp"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:textColor="#000"
+                        android:importantForAccessibility="no"/>
+                </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
+
         </LinearLayout>
 
         <LinearLayout

@@ -14,6 +14,10 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.electronicsaleshandbook.R;
 import com.example.electronicsaleshandbook.repository.SheetRepository;
 import com.example.electronicsaleshandbook.viewmodel.ProductViewModel;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.graphics.Insets;
+import android.view.View;
 
 public class AddProductActivity extends AppCompatActivity {
     private EditText edtTenSanPham, edtDonGia, edtGiaBan, edtDonViTinh, edtMoTa;
@@ -23,6 +27,19 @@ public class AddProductActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_product);
+
+        View addProductLayout = findViewById(R.id.addProduct);
+
+        ViewCompat.setOnApplyWindowInsetsListener(addProductLayout, (v, insets) -> {
+            Insets statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.statusBars());
+            v.setPadding(
+                    v.getPaddingLeft(),
+                    statusBarInsets.top,  // dùng đúng khoảng cách status bar thực tế
+                    v.getPaddingRight(),
+                    v.getPaddingBottom()
+            );
+            return insets;
+        });
 
         // Khởi tạo Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);

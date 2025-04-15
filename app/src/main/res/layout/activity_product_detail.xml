@@ -6,8 +6,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="#F1F1FF"
-    android:paddingTop="40dp"
-    tools:context=".ui.ProductDetail">
+    tools:context=".ui.ProductDetail"
+    android:id="@+id/productDetai_Layout">
 
     <!-- Toolbar -->
     <androidx.appcompat.widget.Toolbar
@@ -36,7 +36,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="DANH SÁCH CHI TIẾT SẢN PHẨM"
+                android:text="CHI TIẾT SẢN PHẨM"
                 android:textColor="@android:color/white"
                 android:textStyle="bold"
                 android:gravity="center"
@@ -45,7 +45,7 @@
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/account"
+                android:src="@drawable/shop"
                 android:contentDescription="User Icon"
                 app:tint="@android:color/white"
                 android:layout_marginEnd="8dp"/>
@@ -55,7 +55,7 @@
     <!-- Form -->
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:padding="16dp">
 
         <LinearLayout
@@ -172,61 +172,64 @@
                 android:clickable="false"/>
 
             <!-- Thêm vào cuối LinearLayout bên trong ScrollView -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center"
-                android:layout_marginTop="6dp"
-                android:layout_marginBottom="6dp">
-
-                <Button
-                    android:id="@+id/btnSua"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Sửa"
-                    android:layout_marginEnd="8dp"
-                    android:backgroundTint="#03A9F4"
-                    android:textColor="@android:color/white"/>
-
-                <Button
-                    android:id="@+id/btnLuu"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Lưu"
-                    android:layout_marginEnd="8dp"
-                    android:backgroundTint="#4CAF50"
-                    android:textColor="@android:color/white"
-                    android:enabled="false" />
-
-                <Button
-                    android:id="@+id/btnXoa"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Xoá"
-                    android:backgroundTint="#F44336"
-                    android:textColor="@android:color/white"/>
-            </LinearLayout>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Khách hàng sử dụng:"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/customers_recycler_view"
-                android:layout_width="match_parent"
-                android:layout_height="200dp"
-                android:layout_weight="1" />
 
         </LinearLayout>
 
 
     </ScrollView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="6dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnSua"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:backgroundTint="#03A9F4"
+            android:text="Sửa"
+            android:textColor="@android:color/white" />
+
+        <Button
+            android:id="@+id/btnLuu"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:backgroundTint="#4CAF50"
+            android:enabled="false"
+            android:text="Lưu"
+            android:textColor="@android:color/white" />
+
+        <Button
+            android:id="@+id/btnXoa"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:backgroundTint="#F44336"
+            android:text="Xoá"
+            android:textColor="@android:color/white" />
+
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:text="Khách hàng sử dụng:"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/customers_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="Danh sách khách hàng"
+        android:layout_weight="1" />
 </LinearLayout>

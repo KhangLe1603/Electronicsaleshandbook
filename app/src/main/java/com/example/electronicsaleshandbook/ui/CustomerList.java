@@ -24,6 +24,9 @@ import com.example.electronicsaleshandbook.R;
 import com.example.electronicsaleshandbook.viewmodel.ProductViewModel;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.graphics.Insets;
 
 public class CustomerList extends AppCompatActivity {
     private CustomerViewModel viewModel_Customer;
@@ -49,6 +52,19 @@ public class CustomerList extends AppCompatActivity {
         setContentView(R.layout.activity_customer_list);
 
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
+
+        View mainLayout = findViewById(R.id.customerListLayout);
+
+        ViewCompat.setOnApplyWindowInsetsListener(mainLayout, (v, insets) -> {
+            Insets statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.statusBars());
+            v.setPadding(
+                    v.getPaddingLeft(),
+                    statusBarInsets.top,  // dùng đúng khoảng cách status bar thực tế
+                    v.getPaddingRight(),
+                    v.getPaddingBottom()
+            );
+            return insets;
+        });
 
         // Khởi tạo RecyclerView
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
@@ -113,7 +129,7 @@ public class CustomerList extends AppCompatActivity {
                 new Handler(Looper.getMainLooper()).postDelayed(() -> {
                     Log.d("CustomerList", "Retrying refresh, attempt " + retryCount + "/" + MAX_RETRIES);
                     viewModel_Customer.refreshCustomers();
-                }, 3000);
+                }, 1000);
             } else {
                 expectingChange = false;
                 retryCount = 0;

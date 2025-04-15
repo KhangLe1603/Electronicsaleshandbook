@@ -14,6 +14,10 @@ import com.example.electronicsaleshandbook.R;
 import com.example.electronicsaleshandbook.viewmodel.AuthViewModel;
 import com.google.firebase.auth.FirebaseUser;
 import com.squareup.picasso.Picasso;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.graphics.Insets;
+import android.view.View;
 
 public class AccountActivity extends AppCompatActivity {
     private ImageView backIcon, profileImage;
@@ -31,6 +35,19 @@ public class AccountActivity extends AppCompatActivity {
         nameText = findViewById(R.id.nameText);
         emailText = findViewById(R.id.emailText);
         logoutButton = findViewById(R.id.logoutButton);
+
+        View accountLayout = findViewById(R.id.account);
+
+        ViewCompat.setOnApplyWindowInsetsListener(accountLayout, (v, insets) -> {
+            Insets statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.statusBars());
+            v.setPadding(
+                    v.getPaddingLeft(),
+                    statusBarInsets.top,  // dùng đúng khoảng cách status bar thực tế
+                    v.getPaddingRight(),
+                    v.getPaddingBottom()
+            );
+            return insets;
+        });
 
         // Khởi tạo ViewModel
         viewModel = new ViewModelProvider(this,
