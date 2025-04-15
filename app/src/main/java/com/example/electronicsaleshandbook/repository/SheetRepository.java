@@ -62,6 +62,7 @@ public class SheetRepository {
         return instance;
     }
 
+
     public LiveData<List<Product>> getProducts() {
         synchronized (this) {
             if (isRefreshingProducts) {
@@ -77,6 +78,21 @@ public class SheetRepository {
         }
         fetchProductsWithBackoff(0, 5);
         return productsLiveData;
+    }
+
+    public void refreshLinks() {
+        synchronized (this) {
+            if (System.currentTimeMillis() - lastRefreshTime < MIN_REFRESH_INTERVAL || isRefreshingLinks) {
+                Log.d("SheetRepository", "Skipping link refresh, too soon or already refreshing");
+                if (cachedLinks != null) {
+                    linksLiveData.postValue(cachedLinks);
+                }
+                return;
+            }
+            isRefreshingLinks = true;
+            lastRefreshTime = System.currentTimeMillis();
+        }
+        fetchLinksWithBackoff(0, 5);
     }
 
     public LiveData<List<CustomerProductLink>> getLinks() {

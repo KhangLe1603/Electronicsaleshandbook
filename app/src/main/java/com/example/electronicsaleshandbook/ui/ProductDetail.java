@@ -25,7 +25,9 @@ import com.example.electronicsaleshandbook.model.Customer;
 import com.example.electronicsaleshandbook.model.CustomerProductLink;
 import com.example.electronicsaleshandbook.model.Product;
 import com.example.electronicsaleshandbook.repository.CustomerRepository;
+import com.example.electronicsaleshandbook.repository.SheetRepository;
 import com.example.electronicsaleshandbook.viewmodel.CustomerProductLinkViewModel;
+import com.example.electronicsaleshandbook.viewmodel.CustomerViewModel;
 import com.example.electronicsaleshandbook.viewmodel.ProductViewModel;
 
 import java.io.IOException;
@@ -35,6 +37,7 @@ import java.util.List;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.graphics.Insets;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 public class ProductDetail extends AppCompatActivity {
     private EditText edtTenSanPham, edtDonGia, edtGiaBan, edtDonViTinh, edtMoTa, editId;
@@ -46,7 +49,8 @@ public class ProductDetail extends AppCompatActivity {
     private CustomerProductLinkViewModel linkViewModel;
     private CustomerRepository customerRepository;
     private final DecimalFormat decimalFormat = new DecimalFormat("#,###");
-
+    private SwipeRefreshLayout swipeRefreshLayout;
+    private SheetRepository sheetRepository;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,6 +84,7 @@ public class ProductDetail extends AppCompatActivity {
         btnSua = findViewById(R.id.btnSua);
         btnLuu = findViewById(R.id.btnLuu);
         btnXoa = findViewById(R.id.btnXoa);
+        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
 
         viewModel = new ViewModelProvider(this,
                 new ViewModelProvider.Factory() {
@@ -123,18 +128,59 @@ public class ProductDetail extends AppCompatActivity {
             return;
         }
 
+        // Cập nhật MediatorLiveData
         MediatorLiveData<List<Customer>> productCustomersLiveData = new MediatorLiveData<>();
         LiveData<List<Customer>> customersLiveData = customerRepository.getCustomers();
         LiveData<List<CustomerProductLink>> linksLiveData = linkViewModel.getLinks();
 
-        productCustomersLiveData.addSource(customersLiveData, customers -> combineData(productCustomersLiveData, customers, linksLiveData.getValue()));
-        productCustomersLiveData.addSource(linksLiveData, links -> combineData(productCustomersLiveData, customersLiveData.getValue(), links));
+        productCustomersLiveData.addSource(customersLiveData, customers -> {
+            Log.d("ProductDetail", "Customers updated, size: " + (customers != null ? customers.size() : 0));
+            combineData(productCustomersLiveData, customers, linksLiveData.getValue());
+        });
+        productCustomersLiveData.addSource(linksLiveData, links -> {
+            Log.d("ProductDetail", "Links updated, size: " + (links != null ? links.size() : 0));
+            combineData(productCustomersLiveData, customersLiveData.getValue(), links);
+        });
 
         productCustomersLiveData.observe(this, productCustomers -> {
-            Log.d("ProductDetail", "Customers using product " + product.getId() + ": " + productCustomers.size());
-            customerAdapter.setCustomers(productCustomers);
-            if (productCustomers.isEmpty()) {
+            Log.d("ProductDetail", "Customers using product " + product.getId() + ": " + (productCustomers != null ? productCustomers.size() : 0));
+            customerAdapter.setCustomers(productCustomers != null ? productCustomers : new ArrayList<>());
+            swipeRefreshLayout.setRefreshing(false);
+            if (productCustomers == null || productCustomers.isEmpty()) {
                 Toast.makeText(this, "Sản phẩm này chưa có khách hàng sử dụng", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        try {
+            sheetRepository = SheetRepository.getInstance(this);
+        } catch (IOException | GeneralSecurityException e) {
+            Log.e("ProductDetail", "Failed to initialize SheetRepository", e);
+            Toast.makeText(this, "Lỗi tải dữ liệu liên kết", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        // Xử lý kéo để làm mới
+        swipeRefreshLayout.setOnRefreshListener(() -> {
+            Log.d("ProductDetail", "Refreshing customer list for product " + product.getId());
+            try {
+                if (customerRepository != null) {
+                    customerRepository.invalidateCache();
+                    customerRepository.refreshCustomers();
+                } else {
+                    Log.w("ProductDetail", "CustomerRepository is null, skipping refresh");
+                }
+                if (sheetRepository != null) {
+                    sheetRepository.invalidateCache();
+                    linkViewModel.refreshLinks();
+                } else {
+                    Log.w("ProductDetail", "SheetRepository is null, skipping refresh");
+                }
+            } catch (Exception e) {
+                Log.e("ProductDetail", "Refresh failed", e);
+                Toast.makeText(this, "Lỗi làm mới dữ liệu", Toast.LENGTH_SHORT).show();
+            } finally {
+                swipeRefreshLayout.setRefreshing(false);
             }
         });
 
@@ -255,10 +301,13 @@ public class ProductDetail extends AppCompatActivity {
 
     private void combineData(MediatorLiveData<List<Customer>> productCustomersLiveData,
                              List<Customer> customers, List<CustomerProductLink> links) {
+        Log.d("ProductDetail", "Combining data: customers=" + (customers != null ? customers.size() : "null") +
+                ", links=" + (links != null ? links.size() : "null"));
+        List<Customer> productCustomers = new ArrayList<>();
         if (customers == null || links == null) {
+            productCustomersLiveData.setValue(productCustomers);
             return;
         }
-        List<Customer> productCustomers = new ArrayList<>();
         for (CustomerProductLink link : links) {
             if (link.getProductId().equals(product.getId())) {
                 Customer customer = getCustomerById(link.getCustomerId(), customers);
@@ -267,6 +316,7 @@ public class ProductDetail extends AppCompatActivity {
                 }
             }
         }
+        Log.d("ProductDetail", "Combined customers for product " + product.getId() + ": " + productCustomers.size());
         productCustomersLiveData.setValue(productCustomers);
     }
 

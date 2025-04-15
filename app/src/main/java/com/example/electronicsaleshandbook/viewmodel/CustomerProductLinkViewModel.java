@@ -4,6 +4,7 @@ import android.content.Context;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModel;
 import com.example.electronicsaleshandbook.model.CustomerProductLink;
+import com.example.electronicsaleshandbook.repository.CustomerRepository;
 import com.example.electronicsaleshandbook.repository.SheetRepository;
 
 import java.io.IOException;
@@ -20,4 +21,9 @@ public class CustomerProductLinkViewModel extends ViewModel {
     public LiveData<List<CustomerProductLink>> getLinks() {
         return repository.getLinks();
     }
+
+    public void refreshLinks() {
+        repository.refreshLinks();
+    }
+
 }
