@@ -102,7 +102,13 @@ public class Customer_detail extends AppCompatActivity {
                     }
                 }).get(CustomerViewModel.class);
 
-
+        String[] genderOptions = {"Nam", "Nữ"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_dropdown_item_1line,
+                genderOptions
+        );
+        etGender.setAdapter(adapter);
 
         // Nhận Customer từ Intent
         customer = (Customer) getIntent().getSerializableExtra("CUSTOMER");
@@ -114,13 +120,7 @@ public class Customer_detail extends AppCompatActivity {
             return;
         }
 
-        String[] genderOptions = {"Nam", "Nữ"};
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_dropdown_item_1line,
-                genderOptions
-        );
-        etGender.setAdapter(adapter);
+
 
         // Khởi tạo RecyclerView và Adapter
         productAdapter = new ProductDetailAdapter();
@@ -332,12 +332,23 @@ public class Customer_detail extends AppCompatActivity {
         etAddress.setFocusableInTouchMode(isEditable);
         etAddress.setClickable(isEditable);
 
+        etGender.setEnabled(isEditable);
+        etGender.setFocusable(isEditable);
         etGender.setFocusableInTouchMode(false);
         etGender.setClickable(isEditable); // chỉ cho bấm khi đang sửa
         if (isEditable) {
+            // Gán lại adapter mỗi khi vào chế độ sửa
+            String[] genderOptions = {"Nam", "Nữ"};
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                    this,
+                    android.R.layout.simple_dropdown_item_1line,
+                    genderOptions
+            );
+            etGender.setAdapter(adapter);
             etGender.setOnClickListener(v -> etGender.showDropDown());
         } else {
-            etGender.setOnClickListener(null); // không cho hiển thị dropdown khi không sửa
+            etGender.setOnClickListener(null);
+            etGender.setKeyListener(null);
         }
 
 
@@ -415,4 +426,5 @@ public class Customer_detail extends AppCompatActivity {
         datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
         datePickerDialog.show();
     }
+
 }
