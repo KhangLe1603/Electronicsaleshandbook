@@ -1,6 +1,9 @@
 package com.example.electronicsaleshandbook.ui;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
@@ -12,10 +15,12 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.electronicsaleshandbook.R;
+import com.example.electronicsaleshandbook.util.NetworkUtil;
 import com.example.electronicsaleshandbook.viewmodel.AuthViewModel;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -28,6 +33,7 @@ public class LoginActivity extends AppCompatActivity {
     private ImageView googleSignInButton;
     private AuthViewModel viewModel;
     private ActivityResultLauncher<Intent> googleSignInLauncher;
+    private BroadcastReceiver networkReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +56,19 @@ public class LoginActivity extends AppCompatActivity {
                     }
                 }).get(AuthViewModel.class);
 
+        // Kiểm tra kết nối mạng
+        updateUIForNetworkStatus();
+
+        // Thiết lập BroadcastReceiver để theo dõi mạng
+        networkReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                updateUIForNetworkStatus();
+            }
+        };
+        IntentFilter filter = new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE");
+        registerReceiver(networkReceiver, filter);
+
         // Observe authentication result
         viewModel.getAuthResult().observe(this, authResult -> {
             Toast.makeText(LoginActivity.this, authResult.getMessage(), Toast.LENGTH_SHORT).show();
@@ -67,6 +86,10 @@ public class LoginActivity extends AppCompatActivity {
 
         // Email login
         loginButton.setOnClickListener(v -> {
+            if (!NetworkUtil.isNetworkAvailable(this)) {
+                showNetworkErrorDialog();
+                return;
+            }
             String email = emailEditText.getText().toString().trim();
             String password = passwordEditText.getText().toString().trim();
             if (email.isEmpty() || password.isEmpty()) {
@@ -78,6 +101,10 @@ public class LoginActivity extends AppCompatActivity {
 
         // Navigate to Register
         goToRegisterText.setOnClickListener(v -> {
+            if (!NetworkUtil.isNetworkAvailable(this)) {
+                showNetworkErrorDialog();
+                return;
+            }
             Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
             startActivity(intent);
         });
@@ -100,8 +127,43 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         googleSignInButton.setOnClickListener(v -> {
+            if (!NetworkUtil.isNetworkAvailable(this)) {
+                showNetworkErrorDialog();
+                return;
+            }
             Intent signInIntent = viewModel.getGoogleSignInClient().getSignInIntent();
             googleSignInLauncher.launch(signInIntent);
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (networkReceiver != null) {
+            unregisterReceiver(networkReceiver);
+        }
+    }
+
+    private void updateUIForNetworkStatus() {
+        boolean isNetworkAvailable = NetworkUtil.isNetworkAvailable(this);
+        Log.d("LoginActivity", "Network status: " + (isNetworkAvailable ? "Connected" : "Disconnected"));
+
+        loginButton.setEnabled(isNetworkAvailable);
+        googleSignInButton.setEnabled(isNetworkAvailable);
+        goToRegisterText.setEnabled(isNetworkAvailable);
+
+        if (!isNetworkAvailable) {
+            showNetworkErrorDialog();
+        }
+    }
+
+    private void showNetworkErrorDialog() {
+        Log.w("LoginActivity", "No network connection detected");
+        new AlertDialog.Builder(this)
+                .setTitle("Lỗi kết nối")
+                .setMessage("Không có kết nối mạng. Vui lòng bật Wi-Fi hoặc dữ liệu di động và thử lại!")
+                .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
+                .setCancelable(false)
+                .show();
     }
 }
