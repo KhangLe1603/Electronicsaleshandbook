@@ -2,6 +2,8 @@ package com.example.electronicsaleshandbook.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -88,6 +90,8 @@ public class ProductDetail extends AppCompatActivity {
         btnLuu = findViewById(R.id.btnLuu);
         btnXoa = findViewById(R.id.btnXoa);
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
+        setupCurrencyFormatter(edtDonGia);
+        setupCurrencyFormatter(edtGiaBan);
 
         viewModel = new ViewModelProvider(this,
                 new ViewModelProvider.Factory() {
@@ -345,5 +349,43 @@ public class ProductDetail extends AppCompatActivity {
             }
         }
         return null;
+    }
+
+    private String formatCurrency(String input) {
+        if (input.isEmpty()) return "";
+
+        try {
+            long value = Long.parseLong(input.replaceAll("\\D", ""));
+            return String.format("%,d", value).replace(",", ".");
+        } catch (NumberFormatException e) {
+            return "";
+        }
+    }
+
+    private void setupCurrencyFormatter(EditText editText) {
+        editText.addTextChangedListener(new TextWatcher() {
+            private String current = "";
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) { }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (!s.toString().equals(current)) {
+                    editText.removeTextChangedListener(this);
+
+                    String cleanString = s.toString().replaceAll("\\D", "");
+                    String formatted = formatCurrency(cleanString);
+                    current = formatted;
+                    editText.setText(formatted);
+                    editText.setSelection(formatted.length());
+
+                    editText.addTextChangedListener(this);
+                }
+            }
+        });
     }
 }

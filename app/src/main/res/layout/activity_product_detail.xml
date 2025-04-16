@@ -184,7 +184,9 @@
         android:layout_marginTop="6dp"
         android:layout_marginBottom="6dp"
         android:gravity="center"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp">
 
         <Button
             android:id="@+id/btnSua"
@@ -224,7 +226,8 @@
         android:layout_marginTop="5dp"
         android:text="Khách hàng sử dụng:"
         android:textSize="16sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:paddingLeft="10dp"/>
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefreshLayout"
@@ -236,6 +239,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:contentDescription="Danh sách khách hàng"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:padding="10dp"/>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 </LinearLayout>
