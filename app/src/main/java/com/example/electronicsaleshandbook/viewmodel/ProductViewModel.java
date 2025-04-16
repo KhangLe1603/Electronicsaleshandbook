@@ -93,7 +93,6 @@ public class ProductViewModel extends ViewModel {
     public void refreshProducts() {
         Log.d("ProductViewModel", "Refreshing products...");
         searchQuery.postValue(""); // Dùng postValue thay vì setValue
-
         sortOption.postValue(0);   // Dùng postValue thay vì setValue
         repository.invalidateCache();
         repository.refreshProducts();
@@ -148,7 +147,7 @@ public class ProductViewModel extends ViewModel {
                         .setValueInputOption("RAW")
                         .execute();
 
-                Thread.sleep(1000);
+                Thread.sleep(2000);
                 Log.d("ProductViewModel", "Product added successfully with ID: " + newId + " at row " + (lastRow + 1));
             } catch (IOException e) {
                 Log.e("ProductViewModel", "Error adding product", e);
@@ -177,7 +176,7 @@ public class ProductViewModel extends ViewModel {
                         .setValueInputOption("RAW")
                         .execute();
 
-                Thread.sleep(1000);
+                Thread.sleep(2000);
                 Log.d("ProductViewModel", "Product updated successfully at row " + sheetRowIndex);
             } catch (IOException | NumberFormatException e) {
                 Log.e("ProductViewModel", "Error updating product", e);
@@ -210,7 +209,7 @@ public class ProductViewModel extends ViewModel {
                         .batchUpdate("1T0vRbdFnjTUTKkgcpbSuvjNnbG9eD49j_xjlknWtj_A", batchRequest)
                         .execute();
 
-                Thread.sleep(1000);
+                Thread.sleep(2000);
                 Log.d("ProductViewModel", "Product deleted successfully at row " + sheetRowIndex);
             } catch (IOException e) {
                 Log.e("ProductViewModel", "Error deleting product", e);

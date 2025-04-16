@@ -51,6 +51,9 @@ public class ProductDetail extends AppCompatActivity {
     private final DecimalFormat decimalFormat = new DecimalFormat("#,###");
     private SwipeRefreshLayout swipeRefreshLayout;
     private SheetRepository sheetRepository;
+    private List<Customer> latestCustomers = null;
+    private List<CustomerProductLink> latestLinks = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -121,25 +124,32 @@ public class ProductDetail extends AppCompatActivity {
                     }
                 }
             }).get(CustomerProductLinkViewModel.class);
+            sheetRepository = SheetRepository.getInstance(this);
         } catch (IOException | GeneralSecurityException e) {
-            Log.e("ProductDetail", "Failed to initialize CustomerRepository", e);
-            Toast.makeText(this, "Không thể kết nối đến dữ liệu khách hàng", Toast.LENGTH_SHORT).show();
+            Log.e("ProductDetail", "Failed to initialize repositories", e);
+            Toast.makeText(this, "Không thể kết nối đến dữ liệu", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
-        // Cập nhật MediatorLiveData
+        // Cập nhật MediatorLiveData với đồng bộ hóa dữ liệu
         MediatorLiveData<List<Customer>> productCustomersLiveData = new MediatorLiveData<>();
         LiveData<List<Customer>> customersLiveData = customerRepository.getCustomers();
         LiveData<List<CustomerProductLink>> linksLiveData = linkViewModel.getLinks();
 
         productCustomersLiveData.addSource(customersLiveData, customers -> {
             Log.d("ProductDetail", "Customers updated, size: " + (customers != null ? customers.size() : 0));
-            combineData(productCustomersLiveData, customers, linksLiveData.getValue());
+            latestCustomers = customers;
+            if (latestCustomers != null && latestLinks != null) {
+                combineData(productCustomersLiveData, latestCustomers, latestLinks);
+            }
         });
         productCustomersLiveData.addSource(linksLiveData, links -> {
             Log.d("ProductDetail", "Links updated, size: " + (links != null ? links.size() : 0));
-            combineData(productCustomersLiveData, customersLiveData.getValue(), links);
+            latestLinks = links;
+            if (latestCustomers != null && latestLinks != null) {
+                combineData(productCustomersLiveData, latestCustomers, latestLinks);
+            }
         });
 
         productCustomersLiveData.observe(this, productCustomers -> {
@@ -169,12 +179,14 @@ public class ProductDetail extends AppCompatActivity {
                     customerRepository.refreshCustomers();
                 } else {
                     Log.w("ProductDetail", "CustomerRepository is null, skipping refresh");
+                    Toast.makeText(this, "Không thể làm mới khách hàng", Toast.LENGTH_SHORT).show();
                 }
                 if (sheetRepository != null) {
                     sheetRepository.invalidateCache();
                     linkViewModel.refreshLinks();
                 } else {
                     Log.w("ProductDetail", "SheetRepository is null, skipping refresh");
+                    Toast.makeText(this, "Không thể làm mới liên kết", Toast.LENGTH_SHORT).show();
                 }
             } catch (Exception e) {
                 Log.e("ProductDetail", "Refresh failed", e);
@@ -305,14 +317,20 @@ public class ProductDetail extends AppCompatActivity {
                 ", links=" + (links != null ? links.size() : "null"));
         List<Customer> productCustomers = new ArrayList<>();
         if (customers == null || links == null) {
+            Log.w("ProductDetail", "Customers or links are null, cannot combine data");
             productCustomersLiveData.setValue(productCustomers);
+            Toast.makeText(this, "Không thể tải dữ liệu khách hàng", Toast.LENGTH_SHORT).show();
             return;
         }
         for (CustomerProductLink link : links) {
+            Log.d("ProductDetail", "Checking link: customerId=" + link.getCustomerId() + ", productId=" + link.getProductId());
             if (link.getProductId().equals(product.getId())) {
                 Customer customer = getCustomerById(link.getCustomerId(), customers);
                 if (customer != null) {
                     productCustomers.add(customer);
+                    Log.d("ProductDetail", "Added customer: " + customer.getId());
+                } else {
+                    Log.w("ProductDetail", "Customer not found for customerId=" + link.getCustomerId());
                 }
             }
         }

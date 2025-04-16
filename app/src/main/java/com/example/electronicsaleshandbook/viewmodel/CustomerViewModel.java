@@ -100,7 +100,6 @@ public class CustomerViewModel extends ViewModel {
                             String email, String birthday, String gender) {
         new Thread(() -> {
             try {
-                // Lấy dữ liệu từ cột B để đếm số dòng (không cần cột A vì STT tự động)
                 ValueRange existingData = repository.getSheetsService().spreadsheets().values()
                         .get("1T0vRbdFnjTUTKkgcpbSuvjNnbG9eD49j_xjlknWtj_A", "KhachHang!B2:B")
                         .execute();
@@ -121,7 +120,7 @@ public class CustomerViewModel extends ViewModel {
                         .setValueInputOption("RAW")
                         .execute();
 
-                Thread.sleep(1000);
+                Thread.sleep(2000);
                 Log.d("CustomerViewModel", "Customer added successfully with ID: " + newId + " at row " + (lastRow + 1));
             } catch (IOException e) {
                 Log.e("CustomerViewModel", "Error adding customer", e);
@@ -148,7 +147,7 @@ public class CustomerViewModel extends ViewModel {
                         .setValueInputOption("RAW")
                         .execute();
 
-                Thread.sleep(1000);
+                Thread.sleep(2000);
                 Log.d("CustomerViewModel", "Customer updated successfully at row " + sheetRowIndex);
             } catch (IOException e) {
                 Log.e("CustomerViewModel", "Error updating customer", e);
@@ -180,7 +179,7 @@ public class CustomerViewModel extends ViewModel {
                         .batchUpdate("1T0vRbdFnjTUTKkgcpbSuvjNnbG9eD49j_xjlknWtj_A", batchRequest)
                         .execute();
 
-                Thread.sleep(1000);
+                Thread.sleep(2000);
                 Log.d("CustomerViewModel", "Customer deleted successfully at row " + sheetRowIndex);
             } catch (IOException e) {
                 Log.e("CustomerViewModel", "Error deleting customer", e);

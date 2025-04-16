@@ -80,19 +80,21 @@ public class SheetRepository {
         return productsLiveData;
     }
 
+    // Trong SheetRepository
     public void refreshLinks() {
         synchronized (this) {
-            if (System.currentTimeMillis() - lastRefreshTime < MIN_REFRESH_INTERVAL || isRefreshingLinks) {
-                Log.d("SheetRepository", "Skipping link refresh, too soon or already refreshing");
+            if (cachedLinks == null || (!isRefreshingLinks && System.currentTimeMillis() - lastRefreshTime >= MIN_REFRESH_INTERVAL)) {
+                isRefreshingLinks = true;
+                lastRefreshTime = System.currentTimeMillis();
+                Log.d("SheetRepository", "Starting fetchLinksWithBackoff for links");
+                fetchLinksWithBackoff(0, 5);
+            } else {
+                Log.d("SheetRepository", "Skipping link refresh, using cache or already refreshing");
                 if (cachedLinks != null) {
                     linksLiveData.postValue(cachedLinks);
                 }
-                return;
             }
-            isRefreshingLinks = true;
-            lastRefreshTime = System.currentTimeMillis();
         }
-        fetchLinksWithBackoff(0, 5);
     }
 
     public LiveData<List<CustomerProductLink>> getLinks() {

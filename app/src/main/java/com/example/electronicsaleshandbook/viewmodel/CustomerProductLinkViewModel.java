@@ -23,6 +23,7 @@ public class CustomerProductLinkViewModel extends ViewModel {
     }
 
     public void refreshLinks() {
+        repository.invalidateCache();
         repository.refreshLinks();
     }
 

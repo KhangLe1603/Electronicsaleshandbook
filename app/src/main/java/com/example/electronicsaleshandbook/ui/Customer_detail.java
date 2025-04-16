@@ -58,6 +58,8 @@ public class Customer_detail extends AppCompatActivity {
     private MaterialAutoCompleteTextView etGender;
     private boolean isEditing = false;
     private SwipeRefreshLayout swipeRefreshLayout;
+    private List<Product> latestProducts = null;
+    private List<CustomerProductLink> latestLinks = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -146,18 +148,23 @@ public class Customer_detail extends AppCompatActivity {
             return;
         }
 
-        // Cập nhật MediatorLiveData
         MediatorLiveData<List<Product>> customerProductsLiveData = new MediatorLiveData<>();
         LiveData<List<Product>> productsLiveData = productRepository.getProducts();
         LiveData<List<CustomerProductLink>> linksLiveData = linkViewModel.getLinks();
 
         customerProductsLiveData.addSource(productsLiveData, products -> {
             Log.d("Customer_detail", "Products updated, size: " + (products != null ? products.size() : 0));
-            combineData(customerProductsLiveData, products, linksLiveData.getValue());
+            latestProducts = products;
+            if (latestProducts != null && latestLinks != null) {
+                combineData(customerProductsLiveData, latestProducts, latestLinks);
+            }
         });
         customerProductsLiveData.addSource(linksLiveData, links -> {
             Log.d("Customer_detail", "Links updated, size: " + (links != null ? links.size() : 0));
-            combineData(customerProductsLiveData, productsLiveData.getValue(), links);
+            latestLinks = links;
+            if (latestProducts != null && latestLinks != null) {
+                combineData(customerProductsLiveData, latestProducts, latestLinks);
+            }
         });
 
         customerProductsLiveData.observe(this, customerProducts -> {
@@ -169,8 +176,6 @@ public class Customer_detail extends AppCompatActivity {
             }
         });
 
-
-        // Trong CustomerDetail.java
         swipeRefreshLayout.setOnRefreshListener(() -> {
             Log.d("Customer_detail", "Refreshing product list for customer " + customer.getId());
             try {
@@ -180,12 +185,14 @@ public class Customer_detail extends AppCompatActivity {
                     Log.d("Customer_detail", "ProductRepository refreshed");
                 } else {
                     Log.w("Customer_detail", "ProductRepository is null, skipping refresh");
+                    Toast.makeText(this, "Không thể làm mới sản phẩm", Toast.LENGTH_SHORT).show();
                 }
                 if (linkViewModel != null) {
                     linkViewModel.refreshLinks();
                     Log.d("Customer_detail", "LinkViewModel refreshed");
                 } else {
                     Log.w("Customer_detail", "LinkViewModel is null, skipping refresh");
+                    Toast.makeText(this, "Không thể làm mới liên kết", Toast.LENGTH_SHORT).show();
                 }
             } catch (Exception e) {
                 Log.e("Customer_detail", "Refresh failed: " + e.getMessage(), e);
@@ -325,11 +332,6 @@ public class Customer_detail extends AppCompatActivity {
         etAddress.setFocusableInTouchMode(isEditable);
         etAddress.setClickable(isEditable);
 
-//        etGender.setFocusable(isEditable);
-//        etGender.setFocusableInTouchMode(isEditable);
-//        etGender.setClickable(isEditable);
-
-        etGender.setFocusable(false); // luôn không cho nhập tay
         etGender.setFocusableInTouchMode(false);
         etGender.setClickable(isEditable); // chỉ cho bấm khi đang sửa
         if (isEditable) {
@@ -347,14 +349,20 @@ public class Customer_detail extends AppCompatActivity {
                 ", links=" + (links != null ? links.size() : "null"));
         List<Product> customerProducts = new ArrayList<>();
         if (products == null || links == null) {
+            Log.w("Customer_detail", "Products or links are null, cannot combine data");
             customerProductsLiveData.setValue(customerProducts);
+            Toast.makeText(this, "Không thể tải dữ liệu sản phẩm", Toast.LENGTH_SHORT).show();
             return;
         }
         for (CustomerProductLink link : links) {
+            Log.d("Customer_detail", "Checking link: customerId=" + link.getCustomerId() + ", productId=" + link.getProductId());
             if (link.getCustomerId().equals(customer.getId())) {
                 Product product = getProductById(link.getProductId(), products);
                 if (product != null) {
                     customerProducts.add(product);
+                    Log.d("Customer_detail", "Added product: " + product.getId());
+                } else {
+                    Log.w("Customer_detail", "Product not found for productId=" + link.getProductId());
                 }
             }
         }

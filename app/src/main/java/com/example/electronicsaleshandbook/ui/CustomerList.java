@@ -129,7 +129,7 @@ public class CustomerList extends AppCompatActivity {
                 new Handler(Looper.getMainLooper()).postDelayed(() -> {
                     Log.d("CustomerList", "Retrying refresh, attempt " + retryCount + "/" + MAX_RETRIES);
                     viewModel_Customer.refreshCustomers();
-                }, 1000);
+                }, 2000);
             } else {
                 expectingChange = false;
                 retryCount = 0;

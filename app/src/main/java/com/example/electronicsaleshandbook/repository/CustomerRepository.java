@@ -172,6 +172,7 @@ public class CustomerRepository {
     public void invalidateCache() {
         synchronized (this) {
             cachedCustomers = null;
+
             Log.d("CustomerRepository", "Customer cache invalidated");
         }
     }
