@@ -20,6 +20,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -37,6 +38,9 @@ public class SheetRepository {
     private boolean isRefreshingProducts = false;
     private boolean isRefreshingLinks = false;
     private int requestCount = 0;
+
+    //test
+    private final MutableLiveData<String> linkResultLiveData = new MutableLiveData<>();
 
     private SheetRepository(Context context) throws IOException, GeneralSecurityException {
         try {
@@ -139,6 +143,39 @@ public class SheetRepository {
 
     public Sheets getSheetsService() {
         return service;
+    }
+
+    //test
+    public LiveData<String> getLinkResult() {
+        return linkResultLiveData;
+    }
+
+    //test
+    public void createLink(CustomerProductLink link) {
+        new Thread(() -> {
+            try {
+                ValueRange body = new ValueRange()
+                        .setValues(Arrays.asList(Arrays.asList("", link.getCustomerId(), link.getProductId())));
+                service.spreadsheets().values()
+                        .append(SPREADSHEET_ID, "CustomerProductLink!A2:C", body)
+                        .setValueInputOption("RAW")
+                        .execute();
+                synchronized (this) {
+                    if (cachedLinks != null) {
+                        cachedLinks.add(link);
+                        linksLiveData.postValue(cachedLinks);
+                    }
+                }
+                linkResultLiveData.postValue("Tạo liên kết thành công");
+                Log.d("SheetRepository", "Link created: " + link.getCustomerId() + " - " + link.getProductId());
+            } catch (GoogleJsonResponseException e) {
+                linkResultLiveData.postValue("Lỗi: " + e.getDetails().getMessage());
+                Log.e("SheetRepository", "Error creating link: " + e.getStatusCode(), e);
+            } catch (IOException e) {
+                linkResultLiveData.postValue("Lỗi: " + e.getMessage());
+                Log.e("SheetRepository", "IO error creating link", e);
+            }
+        }).start();
     }
 
     private void fetchProductsWithBackoff(int attempt, int maxAttempts) {
