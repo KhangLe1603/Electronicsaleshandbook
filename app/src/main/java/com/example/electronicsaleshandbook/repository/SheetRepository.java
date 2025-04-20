@@ -151,13 +151,47 @@ public class SheetRepository {
     }
 
     //test
-    public void createLink(CustomerProductLink link) {
+    public void createLink(CustomerProductLink link, String customerFullName, String productName) {
         new Thread(() -> {
             try {
+                // Tìm hàng trống tiếp theo dựa trên cột D
+                ValueRange response = service.spreadsheets().values()
+                        .get(SPREADSHEET_ID, "CustomerProductLink!D:D")
+                        .execute();
+                List<List<Object>> values = response.getValues();
+                int nextRow = 2; // Bắt đầu từ hàng 2
+                if (values != null) {
+                    for (int i = 0; i < values.size(); i++) {
+                        if (values.get(i).isEmpty() || values.get(i).get(0).toString().trim().isEmpty()) {
+                            nextRow = i + 2;
+                            break;
+                        }
+                    }
+                    // Nếu không tìm thấy dòng trống, dùng dòng sau dòng cuối cùng
+                    if (nextRow == 2 && values.size() > 0) {
+                        nextRow = values.size() + 1; // ✅ Sửa từ +2 thành +1
+                        // Loại bỏ các dòng trống ở cuối
+                        while (!values.isEmpty() && (values.get(values.size() - 1).isEmpty() ||
+                                values.get(values.size() - 1).get(0).toString().trim().isEmpty())) {
+                            values.remove(values.size() - 1);
+                            nextRow--;
+                        }
+                    }
+                }
+
+                Log.d("SheetRepository", "Values size: " + (values != null ? values.size() : 0) +
+                        ", Next row: " + nextRow);
+
+                // Ghi dữ liệu vào cột D và E
                 ValueRange body = new ValueRange()
-                        .setValues(Arrays.asList(Arrays.asList("", link.getCustomerId(), link.getProductId())));
+                        .setValues(Arrays.asList(Arrays.asList(
+                                customerFullName, // Cột D: Tên đầy đủ
+                                productName // Cột E: Tên sản phẩm
+                        )));
+                String range = "CustomerProductLink!D" + nextRow + ":E" + nextRow;
+                Log.d("SheetRepository", "Updating range: " + range + ", Data: " + body.getValues());
                 service.spreadsheets().values()
-                        .append(SPREADSHEET_ID, "CustomerProductLink!A2:C", body)
+                        .update(SPREADSHEET_ID, range, body)
                         .setValueInputOption("RAW")
                         .execute();
                 synchronized (this) {
@@ -167,12 +201,15 @@ public class SheetRepository {
                     }
                 }
                 linkResultLiveData.postValue("Tạo liên kết thành công");
-                Log.d("SheetRepository", "Link created: " + link.getCustomerId() + " - " + link.getProductId());
+                linkResultLiveData.postValue(null);
+                Log.d("SheetRepository", "Link created: Customer: " + customerFullName + ", Product: " + productName + ", Row: " + nextRow);
             } catch (GoogleJsonResponseException e) {
                 linkResultLiveData.postValue("Lỗi: " + e.getDetails().getMessage());
+                linkResultLiveData.postValue(null);
                 Log.e("SheetRepository", "Error creating link: " + e.getStatusCode(), e);
             } catch (IOException e) {
                 linkResultLiveData.postValue("Lỗi: " + e.getMessage());
+                linkResultLiveData.postValue(null);
                 Log.e("SheetRepository", "IO error creating link", e);
             }
         }).start();

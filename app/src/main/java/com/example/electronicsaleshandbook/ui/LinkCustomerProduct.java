@@ -7,19 +7,21 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.electronicsaleshandbook.R;
 import com.example.electronicsaleshandbook.model.Customer;
 import com.example.electronicsaleshandbook.model.CustomerProductLink;
 import com.example.electronicsaleshandbook.model.Product;
-import com.example.electronicsaleshandbook.util.NetworkUtil;
 import com.example.electronicsaleshandbook.viewmodel.LinkViewModel;
 import com.example.electronicsaleshandbook.util.LinkViewModelFactory;
 import com.google.firebase.auth.FirebaseAuth;
@@ -27,13 +29,14 @@ import com.google.firebase.auth.FirebaseAuth;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Link_Customer_Product extends AppCompatActivity {
+public class LinkCustomerProduct extends AppCompatActivity {
     private Spinner customerSpinner, productSpinner;
     private Button linkButton;
     private TextView linkStatusText;
     private LinkViewModel viewModel;
     private FirebaseAuth firebaseAuth;
     private List<CustomerProductLink> currentLinks;
+    private ImageButton btnBack;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +48,20 @@ public class Link_Customer_Product extends AppCompatActivity {
         linkButton = findViewById(R.id.linkButton);
         linkStatusText = findViewById(R.id.linkStatusText);
         firebaseAuth = FirebaseAuth.getInstance();
+        btnBack = findViewById(R.id.btnBack);
+
+        View Layout = findViewById(R.id.addLinkCustomer);
+
+        ViewCompat.setOnApplyWindowInsetsListener(Layout, (v, insets) -> {
+            Insets statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.statusBars());
+            v.setPadding(
+                    v.getPaddingLeft(),
+                    statusBarInsets.top,
+                    v.getPaddingRight(),
+                    v.getPaddingBottom()
+            );
+            return insets;
+        });
 
         // Kiểm tra đăng nhập
         if (firebaseAuth.getCurrentUser() == null) {
@@ -55,13 +72,7 @@ public class Link_Customer_Product extends AppCompatActivity {
             return;
         }
 
-        // Kiểm tra mạng
-        if (!NetworkUtil.isNetworkAvailable(this)) {
-            Log.d("LinkCustomerProductActivity", "No network connection detected");
-            showNetworkErrorDialog();
-            linkButton.setEnabled(false);
-            return;
-        }
+        btnBack.setOnClickListener(v -> finish());
 
         // Khởi tạo ViewModel với Factory
         try {
@@ -84,7 +95,9 @@ public class Link_Customer_Product extends AppCompatActivity {
                     TextView view = (TextView) super.getView(position, convertView, parent);
                     Customer customer = getItem(position);
                     if (customer != null) {
-                        view.setText(customer.getFirstName() + " (" + customer.getPhone() + ")");
+                        String displayText = (customer.getSurname() + " " + customer.getFirstName()).trim() +
+                                " (" + customer.getPhone() + ")";
+                        view.setText(displayText);
                     }
                     return view;
                 }
@@ -94,7 +107,9 @@ public class Link_Customer_Product extends AppCompatActivity {
                     TextView view = (TextView) super.getDropDownView(position, convertView, parent);
                     Customer customer = getItem(position);
                     if (customer != null) {
-                        view.setText(customer.getFirstName() + " (" + customer.getPhone() + ")");
+                        String displayText = (customer.getSurname() + " " + customer.getFirstName()).trim() +
+                                " (" + customer.getPhone() + ")";
+                        view.setText(displayText);
                     }
                     return view;
                 }
@@ -144,10 +159,15 @@ public class Link_Customer_Product extends AppCompatActivity {
 
         // Quan sát kết quả tạo liên kết
         viewModel.getLinkResult().observe(this, result -> {
-            Toast.makeText(this, result, Toast.LENGTH_SHORT).show();
-            Log.d("LinkCustomerProductActivity", "Link creation result: " + result);
-            if (result.startsWith("Tạo liên kết thành công")) {
-                finish(); // Đóng activity sau khi thành công
+            if (result != null) { // Chỉ xử lý nếu result không null
+                Toast.makeText(this, result, Toast.LENGTH_SHORT).show();
+                Log.d("LinkCustomerProductActivity", "Link creation result: " + result);
+                if (result.startsWith("Tạo liên kết thành công")) {
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra("REFRESH", true);
+                    setResult(RESULT_OK, resultIntent);
+                    finish();
+                }
             }
         });
 
@@ -168,11 +188,6 @@ public class Link_Customer_Product extends AppCompatActivity {
 
         // Xử lý nút tạo liên kết
         linkButton.setOnClickListener(v -> {
-            if (!NetworkUtil.isNetworkAvailable(this)) {
-                Log.d("LinkCustomerProductActivity", "No network connection for link creation");
-                showNetworkErrorDialog();
-                return;
-            }
             Customer customer = (Customer) customerSpinner.getSelectedItem();
             Product product = (Product) productSpinner.getSelectedItem();
             if (customer == null || product == null) {
@@ -181,24 +196,18 @@ public class Link_Customer_Product extends AppCompatActivity {
                 return;
             }
             CustomerProductLink link = new CustomerProductLink(customer.getId(), product.getId());
-            Log.d("LinkCustomerProductActivity", "Creating link: " + customer.getId() + " - " + product.getId());
-            viewModel.createLink(link);
+            String customerFullName = (customer.getSurname() + " " + customer.getFirstName()).trim();
+            String productName = product.getName();
+            Log.d("LinkCustomerProductActivity", "Creating link: " + customer.getId() + " - " + product.getId() +
+                    ", Customer: " + customerFullName + ", Product: " + productName);
+            viewModel.createLink(link, customerFullName, productName);
         });
     }
 
     private void updateLinkStatus() {
         Customer customer = (Customer) customerSpinner.getSelectedItem();
         Product product = (Product) productSpinner.getSelectedItem();
-        boolean isNetworkAvailable = NetworkUtil.isNetworkAvailable(this);
         boolean hasSelection = customer != null && product != null;
-
-        if (!isNetworkAvailable) {
-            linkButton.setEnabled(false);
-            linkStatusText.setVisibility(View.GONE);
-            Log.d("LinkCustomerProductActivity", "Network unavailable, disabling link button");
-            showNetworkErrorDialog();
-            return;
-        }
 
         if (!hasSelection) {
             linkButton.setEnabled(false);
@@ -207,7 +216,6 @@ public class Link_Customer_Product extends AppCompatActivity {
             return;
         }
 
-        // Kiểm tra liên kết tồn tại
         boolean linkExists = currentLinks != null && currentLinks.stream()
                 .anyMatch(link -> link.getCustomerId().equals(customer.getId()) &&
                         link.getProductId().equals(product.getId()));
@@ -221,14 +229,5 @@ public class Link_Customer_Product extends AppCompatActivity {
             linkButton.setEnabled(true);
             Log.d("LinkCustomerProductActivity", "Link does not exist, enabling link button");
         }
-    }
-
-    private void showNetworkErrorDialog() {
-        new AlertDialog.Builder(this)
-                .setTitle("Lỗi kết nối")
-                .setMessage("Không có kết nối mạng. Vui lòng bật Wi-Fi hoặc dữ liệu di động và thử lại!")
-                .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
-                .setCancelable(false)
-                .show();
     }
 }

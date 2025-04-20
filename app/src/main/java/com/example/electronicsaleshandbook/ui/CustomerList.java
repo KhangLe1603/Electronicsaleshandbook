@@ -33,7 +33,7 @@ public class CustomerList extends AppCompatActivity {
     private ProductViewModel viewModel_Product;
     private CustomerAdapter adapter;
     private SwipeRefreshLayout swipeRefreshLayout;
-    private FloatingActionButton fabFilter, fabOption_CustomerList, fabOption_ProductList, fabOption_AddProduct, fabOption_AddCustomer;
+    private FloatingActionButton fabFilter, fabOption_CustomerList, fabOption_ProductList, fabOption_AddProduct, fabOption_AddCustomer, fabOption_AddLink;
     private MaterialAutoCompleteTextView sortDropdown;
     private boolean isFabMenuOpen = false;
     private boolean expectingChange = false;
@@ -44,7 +44,7 @@ public class CustomerList extends AppCompatActivity {
     private static final int REQUEST_ADD_CUSTOMER = 1;
     private static final int REQUEST_CUSTOMER_DETAIL = 2;
     private static final int REQUEST_ADD_PRODUCT = 3;
-
+    private static final int REQUEST_ADD_LINK = 5;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,7 +104,7 @@ public class CustomerList extends AppCompatActivity {
         fabOption_ProductList = findViewById(R.id.fabOption2);
         fabOption_AddProduct = findViewById(R.id.fabAddProduct);
         fabOption_AddCustomer = findViewById(R.id.fabAddCustomer);
-
+        fabOption_AddLink = findViewById(R.id.fabAddLink);
         setupFabMenu();
 
         // Khởi tạo ViewModel
@@ -160,11 +160,12 @@ public class CustomerList extends AppCompatActivity {
                 fabOption_ProductList.setVisibility(View.VISIBLE);
                 fabOption_AddProduct.setVisibility(View.VISIBLE);
                 fabOption_AddCustomer.setVisibility(View.VISIBLE);
+                fabOption_AddLink.setVisibility(View.VISIBLE);
 
                 fabOption_ProductList.animate().translationY(-dpToPx(80)).setDuration(200).start();
                 fabOption_AddProduct.animate().translationY(-dpToPx(160)).setDuration(200).start();
                 fabOption_AddCustomer.animate().translationY(-dpToPx(240)).setDuration(200).start();
-
+                fabOption_AddLink.animate().translationY(-dpToPx(320)).setDuration(200).start();
                 fabFilter.setImageResource(R.drawable.close);
                 fabFilter.setBackgroundTintList(getResources().getColorStateList(R.color.fab_open_color, getTheme()));
             } else {
@@ -175,7 +176,8 @@ public class CustomerList extends AppCompatActivity {
                         .withEndAction(() -> fabOption_AddProduct.setVisibility(View.GONE)).start();
                 fabOption_AddCustomer.animate().translationY(0).setDuration(200)
                         .withEndAction(() -> fabOption_AddCustomer.setVisibility(View.GONE)).start();
-
+                fabOption_AddLink.animate().translationY(0).setDuration(200)
+                        .withEndAction(() -> fabOption_AddLink.setVisibility(View.GONE)).start();
                 fabFilter.setImageResource(R.drawable.menu_opiton);
                 fabFilter.setBackgroundTintList(getResources().getColorStateList(R.color.fab_close_color, getTheme()));
             }
@@ -197,6 +199,10 @@ public class CustomerList extends AppCompatActivity {
             Intent intent = new Intent(CustomerList.this, AddCustomer.class);
             startActivityForResult(intent, REQUEST_ADD_CUSTOMER);
         });
+        fabOption_AddLink.setOnClickListener(v -> {
+            Intent intent = new Intent(CustomerList.this, LinkCustomerProduct.class);
+            startActivityForResult(intent, REQUEST_ADD_LINK);
+        });
     }
 
     @Override
@@ -216,6 +222,9 @@ public class CustomerList extends AppCompatActivity {
                     break;
                 case REQUEST_ADD_PRODUCT: // Từ AddProductActivity
                     viewModel_Product.refreshProducts(); // Nếu CustomerList hiển thị sản phẩm
+                    break;
+                case REQUEST_ADD_LINK:
+                    viewModel_Product.refreshProducts();
                     break;
                 default:
                     Log.w("CustomerList", "Unknown requestCode: " + requestCode);

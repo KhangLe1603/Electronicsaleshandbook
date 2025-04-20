@@ -3,7 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:id="@+id/addLinkCustomer">
 
     <!-- Toolbar -->
     <androidx.appcompat.widget.Toolbar
@@ -33,54 +34,62 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:gravity="center"
-                android:text="THÊM SẢN PHẨM"
+                android:text="THÊM LIÊN KẾT SỬ DỤNG"
                 android:textColor="@android:color/white"
                 android:textStyle="bold"
                 android:textSize="18sp" />
         </FrameLayout>
     </androidx.appcompat.widget.Toolbar>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Chọn khách hàng"
-        android:textSize="16sp"
-        android:layout_marginBottom="8dp" />
-
-    <Spinner
-        android:id="@+id/customerSpinner"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:layout_marginBottom="16dp" />
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="10dp"
+        android:paddingTop="10dp">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Chọn sản phẩm"
-        android:textSize="16sp"
-        android:layout_marginBottom="8dp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="Chọn khách hàng"
+            android:textSize="16sp" />
 
-    <Spinner
-        android:id="@+id/productSpinner"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:layout_marginBottom="16dp" />
+        <Spinner
+            android:id="@+id/customerSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginBottom="16dp" />
 
-    <TextView
-        android:id="@+id/linkStatusText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:text="Liên kết đã tồn tại"
-        android:textColor="#FF0000"
-        android:textSize="14sp"
-        android:visibility="gone" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="Chọn sản phẩm"
+            android:textSize="16sp" />
 
-    <Button
-        android:id="@+id/linkButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Tạo liên kết"
-        android:enabled="false" />
+        <Spinner
+            android:id="@+id/productSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:id="@+id/linkStatusText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="Liên kết đã tồn tại"
+            android:textColor="#FF0000"
+            android:textSize="14sp"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/linkButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:enabled="false"
+            android:text="Tạo liên kết" />
+    </LinearLayout>
 
 </LinearLayout>

@@ -40,7 +40,7 @@ public class LinkViewModel extends ViewModel {
         return sheetRepository.getLinkResult();
     }
 
-    public void createLink(CustomerProductLink link) {
-        sheetRepository.createLink(link);
+    public void createLink(CustomerProductLink link, String customerFullName, String productName) {
+        sheetRepository.createLink(link, customerFullName, productName);
     }
 }

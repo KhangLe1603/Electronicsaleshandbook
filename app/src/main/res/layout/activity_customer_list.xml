@@ -212,6 +212,23 @@
             app:backgroundTint="#4CAF50"
             style="@style/Widget.MaterialComponents.FloatingActionButton"
             />
+
+        <!-- Floating Button 5 - Thêm liên kết -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabAddLink"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|bottom"
+            android:layout_margin="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="256dp"
+            android:contentDescription="Thêm Liên kết"
+            android:src="@drawable/add_link"
+            android:visibility="gone"
+            app:backgroundTint="#4CAF50"
+            style="@style/Widget.MaterialComponents.FloatingActionButton"
+            />
+
     </FrameLayout>
 
 </LinearLayout>
