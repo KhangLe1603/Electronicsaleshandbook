@@ -86,6 +86,7 @@ public class ProductsView extends AppCompatActivity {
                     }
                 }).get(ProductViewModel.class);
 
+
         viewModel_Product.getFilteredProducts().observe(this, products -> {
             int currentSize = products != null ? products.size() : 0;
             Log.d("ProductsView", "Observer triggered, products size: " + currentSize);
@@ -153,13 +154,13 @@ public class ProductsView extends AppCompatActivity {
             if (!isExpanded[0]) {
                 fabOption_CustomerList.setVisibility(View.VISIBLE);
                 fabAddProduct.setVisibility(View.VISIBLE);
-                fabAddCustomer.setVisibility(View.VISIBLE);
+//                fabAddCustomer.setVisibility(View.VISIBLE);
                 fabAddLink.setVisibility(View.VISIBLE);
 
                 fabOption_CustomerList.animate().translationY(-dpToPx(80)).setDuration(200).start();
                 fabAddProduct.animate().translationY(-dpToPx(160)).setDuration(200).start();
-                fabAddCustomer.animate().translationY(-dpToPx(240)).setDuration(200).start();
-                fabAddLink.animate().translationY(-dpToPx(320)).setDuration(200).start();
+//                fabAddCustomer.animate().translationY(-dpToPx(240)).setDuration(200).start();
+                fabAddLink.animate().translationY(-dpToPx(240)).setDuration(200).start();
 
                 fabFilter.setImageResource(R.drawable.close); // icon back
                 fabFilter.setBackgroundTintList(getResources().getColorStateList(R.color.fab_open_color, getTheme()));
@@ -167,7 +168,7 @@ public class ProductsView extends AppCompatActivity {
                 // Đóng menu: di chuyển xuống và ẩn
                 fabOption_CustomerList.animate().translationY(0).setDuration(200).withEndAction(() -> fabOption_CustomerList.setVisibility(View.GONE)).start();
                 fabAddProduct.animate().translationY(0).setDuration(200).withEndAction(() -> fabAddProduct.setVisibility(View.GONE)).start();
-                fabAddCustomer.animate().translationY(0).setDuration(200).withEndAction(() -> fabAddCustomer.setVisibility(View.GONE)).start();
+//                fabAddCustomer.animate().translationY(0).setDuration(200).withEndAction(() -> fabAddCustomer.setVisibility(View.GONE)).start();
                 fabAddLink.animate().translationY(0).setDuration(200).withEndAction(() -> fabAddLink.setVisibility(View.GONE)).start();
 
                 fabFilter.setImageResource(R.drawable.menu_opiton); // icon gốc
@@ -181,10 +182,10 @@ public class ProductsView extends AppCompatActivity {
             Intent intent = new Intent(ProductsView.this, AddProductActivity.class);
             startActivityForResult(intent, 1);
         });
-        fabAddCustomer.setOnClickListener(v -> {
-            Intent intent = new Intent(ProductsView.this, AddCustomer.class);
-            startActivityForResult(intent, 3);
-        });
+//        fabAddCustomer.setOnClickListener(v -> {
+//            Intent intent = new Intent(ProductsView.this, AddCustomer.class);
+//            startActivityForResult(intent, 3);
+//        });
         fabOption_CustomerList.setOnClickListener(v -> {
             Intent intent = new Intent(ProductsView.this, CustomerList.class);
             startActivity(intent);
@@ -215,9 +216,9 @@ public class ProductsView extends AppCompatActivity {
                 case REQUEST_PRODUCT_DETAIL: // Chi tiết sản phẩm
                     viewModel_Product.refreshProducts();
                     break;
-                case REQUEST_ADD_CUSTOMER: // Thêm khách hàng
-                    viewModel_Customer.refreshCustomers();
-                    break;
+//                case REQUEST_ADD_CUSTOMER: // Thêm khách hàng
+//                    viewModel_Customer.refreshCustomers();
+//                    break;
                 case REQUEST_ADD_LINK:
                     viewModel_Product.refreshProducts();
                     break;

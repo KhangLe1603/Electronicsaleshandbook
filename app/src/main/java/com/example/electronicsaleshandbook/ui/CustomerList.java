@@ -158,22 +158,23 @@ public class CustomerList extends AppCompatActivity {
             if (!isFabMenuOpen) {
                 // Mở menu
                 fabOption_ProductList.setVisibility(View.VISIBLE);
-                fabOption_AddProduct.setVisibility(View.VISIBLE);
+//                fabOption_AddProduct.setVisibility(View.VISIBLE);
                 fabOption_AddCustomer.setVisibility(View.VISIBLE);
                 fabOption_AddLink.setVisibility(View.VISIBLE);
 
                 fabOption_ProductList.animate().translationY(-dpToPx(80)).setDuration(200).start();
-                fabOption_AddProduct.animate().translationY(-dpToPx(160)).setDuration(200).start();
-                fabOption_AddCustomer.animate().translationY(-dpToPx(240)).setDuration(200).start();
-                fabOption_AddLink.animate().translationY(-dpToPx(320)).setDuration(200).start();
+//                fabOption_AddProduct.animate().translationY(-dpToPx(160)).setDuration(200).start();
+                fabOption_AddCustomer.animate().translationY(-dpToPx(160)).setDuration(200).start();
+                fabOption_AddLink.animate().translationY(-dpToPx(240)).setDuration(200).start();
+
                 fabFilter.setImageResource(R.drawable.close);
                 fabFilter.setBackgroundTintList(getResources().getColorStateList(R.color.fab_open_color, getTheme()));
             } else {
                 // Đóng menu
                 fabOption_ProductList.animate().translationY(0).setDuration(200)
                         .withEndAction(() -> fabOption_ProductList.setVisibility(View.GONE)).start();
-                fabOption_AddProduct.animate().translationY(0).setDuration(200)
-                        .withEndAction(() -> fabOption_AddProduct.setVisibility(View.GONE)).start();
+//                fabOption_AddProduct.animate().translationY(0).setDuration(200)
+//                        .withEndAction(() -> fabOption_AddProduct.setVisibility(View.GONE)).start();
                 fabOption_AddCustomer.animate().translationY(0).setDuration(200)
                         .withEndAction(() -> fabOption_AddCustomer.setVisibility(View.GONE)).start();
                 fabOption_AddLink.animate().translationY(0).setDuration(200)
@@ -190,10 +191,10 @@ public class CustomerList extends AppCompatActivity {
             finish(); // Chuyển hoàn toàn sang ProductsView
         });
 
-        fabOption_AddProduct.setOnClickListener(v -> {
-            Intent intent = new Intent(CustomerList.this, AddProductActivity.class);
-            startActivityForResult(intent, REQUEST_ADD_PRODUCT);
-        });
+//        fabOption_AddProduct.setOnClickListener(v -> {
+//            Intent intent = new Intent(CustomerList.this, AddProductActivity.class);
+//            startActivityForResult(intent, REQUEST_ADD_PRODUCT);
+//        });
 
         fabOption_AddCustomer.setOnClickListener(v -> {
             Intent intent = new Intent(CustomerList.this, AddCustomer.class);
@@ -220,11 +221,11 @@ public class CustomerList extends AppCompatActivity {
                 case REQUEST_CUSTOMER_DETAIL: // Từ Customer_detail
                     viewModel_Customer.refreshCustomers();
                     break;
-                case REQUEST_ADD_PRODUCT: // Từ AddProductActivity
-                    viewModel_Product.refreshProducts(); // Nếu CustomerList hiển thị sản phẩm
-                    break;
+//                case REQUEST_ADD_PRODUCT: // Từ AddProductActivity
+//                    viewModel_Product.refreshProducts(); // Nếu CustomerList hiển thị sản phẩm
+//                    break;
                 case REQUEST_ADD_LINK:
-                    viewModel_Product.refreshProducts();
+                    viewModel_Customer.refreshCustomers();
                     break;
                 default:
                     Log.w("CustomerList", "Unknown requestCode: " + requestCode);
