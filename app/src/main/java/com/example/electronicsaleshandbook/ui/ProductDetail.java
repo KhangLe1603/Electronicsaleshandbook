@@ -1,6 +1,7 @@
 package com.example.electronicsaleshandbook.ui;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -55,6 +56,7 @@ public class ProductDetail extends AppCompatActivity {
     private SheetRepository sheetRepository;
     private List<Customer> latestCustomers = null;
     private List<CustomerProductLink> latestLinks = null;
+    private boolean isEditing = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -201,7 +203,8 @@ public class ProductDetail extends AppCompatActivity {
         });
 
         btnLuu.setEnabled(false);
-        btnLuu.setAlpha(0.5f);
+        btnLuu.setBackgroundColor(getColor(android.R.color.darker_gray));
+        btnLuu.setAlpha(1.0f);
         btnSua.setEnabled(true);
         btnSua.setAlpha(1.0f);
         btnXoa.setEnabled(true);
@@ -211,11 +214,13 @@ public class ProductDetail extends AppCompatActivity {
         btnSua.setOnClickListener(v -> {
             setEditMode(true);
             btnLuu.setEnabled(true);
-            btnLuu.setAlpha(1.0f);
+            btnLuu.setBackgroundColor(Color.parseColor("#4CAF50"));
             btnSua.setEnabled(false);
             btnSua.setAlpha(0.5f);
-            btnXoa.setEnabled(false);
-            btnXoa.setAlpha(0.5f);
+            btnXoa.setText("Hủy");
+            btnXoa.setEnabled(true);
+            btnXoa.setAlpha(1.0f);
+            isEditing = true;
         });
 
         btnLuu.setOnClickListener(v -> {
@@ -233,13 +238,12 @@ public class ProductDetail extends AppCompatActivity {
             viewModel.updateProduct(product.getSheetRowIndex(), name, description, unitPrice, sellingPrice, unit);
             Toast.makeText(this, "Đang cập nhật sản phẩm...", Toast.LENGTH_SHORT).show();
             setEditMode(false);
-            btnLuu.setEnabled(false);
-            btnLuu.setAlpha(0.5f);
-            btnSua.setEnabled(true);
-            btnSua.setAlpha(1.0f);
-            btnXoa.setEnabled(true);
-            btnXoa.setAlpha(1.0f);
-
+//            btnLuu.setEnabled(false);
+//            btnLuu.setAlpha(0.5f);
+//            btnSua.setEnabled(true);
+//            btnSua.setAlpha(1.0f);
+//            btnXoa.setEnabled(true);
+//            btnXoa.setAlpha(1.0f);
             Intent intent = new Intent();
             intent.putExtra("REFRESH", true);
             setResult(RESULT_OK, intent);
@@ -247,6 +251,21 @@ public class ProductDetail extends AppCompatActivity {
         });
 
         btnXoa.setOnClickListener(v -> {
+            if (isEditing) {
+                setEditMode(false);
+                btnLuu.setEnabled(false);
+                btnLuu.setBackgroundColor(getColor(android.R.color.darker_gray));
+                btnLuu.setAlpha(1.0f);
+                btnSua.setEnabled(true);
+                btnSua.setAlpha(1.0f);
+                btnXoa.setText("Xóa");
+                btnXoa.setEnabled(true);
+                btnXoa.setAlpha(1.0f);
+                isEditing = false;
+                displayProductDetails();
+                return;
+            }
+
             new AlertDialog.Builder(this)
                     .setTitle("Xác nhận xóa")
                     .setMessage("Bạn có chắc chắn muốn xóa sản phẩm này không?")

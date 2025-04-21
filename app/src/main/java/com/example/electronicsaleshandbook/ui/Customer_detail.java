@@ -2,6 +2,7 @@ package com.example.electronicsaleshandbook.ui;
 
 import android.app.DatePickerDialog;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -203,7 +204,8 @@ public class Customer_detail extends AppCompatActivity {
         });
 
         btnLuu.setEnabled(false);
-        btnLuu.setAlpha(0.5f);
+        btnLuu.setBackgroundColor(getColor(android.R.color.darker_gray));
+        btnLuu.setAlpha(1.0f);
         btnSua.setEnabled(true);
         btnSua.setAlpha(1.0f);
         btnXoa.setEnabled(true);
@@ -214,7 +216,7 @@ public class Customer_detail extends AppCompatActivity {
         btnSua.setOnClickListener(v -> {
             setEditMode(true);
             btnLuu.setEnabled(true);
-            btnLuu.setAlpha(1.0f);
+            btnLuu.setBackgroundColor(Color.parseColor("#4CAF50"));
             btnSua.setEnabled(false);
             btnSua.setAlpha(0.5f);
 
@@ -262,10 +264,10 @@ public class Customer_detail extends AppCompatActivity {
                 // Đang ở chế độ sửa → giờ là nút Huỷ
                 setEditMode(false);
                 btnLuu.setEnabled(false);
-                btnLuu.setAlpha(0.5f);
+                btnLuu.setBackgroundColor(getColor(android.R.color.darker_gray));
+
                 btnSua.setEnabled(true);
                 btnSua.setAlpha(1.0f);
-
                 // Khôi phục dữ liệu ban đầu
                 displayCustomerDetails();
 

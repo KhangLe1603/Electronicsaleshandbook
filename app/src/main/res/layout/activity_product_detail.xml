@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F1F1FF"
+    android:background="#E8EAF6"
     tools:context=".ui.ProductDetail"
     android:id="@+id/productDetai_Layout">
 
@@ -14,7 +14,7 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="#4C4CF1"
+        android:background="@color/dark_blue"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
         <LinearLayout
@@ -196,7 +196,8 @@
             android:layout_weight="1"
             android:backgroundTint="#03A9F4"
             android:text="Sửa"
-            android:textColor="@android:color/white" />
+            android:textStyle="bold"
+            android:textColor="#FFFFFF" />
 
         <Button
             android:id="@+id/btnLuu"
@@ -207,7 +208,8 @@
             android:backgroundTint="#4CAF50"
             android:enabled="false"
             android:text="Lưu"
-            android:textColor="@android:color/white" />
+            android:textStyle="bold"
+            android:textColor="#FFFFFF" />
 
         <Button
             android:id="@+id/btnXoa"
@@ -216,7 +218,8 @@
             android:layout_weight="1"
             android:backgroundTint="#F44336"
             android:text="Xoá"
-            android:textColor="@android:color/white" />
+            android:textStyle="bold"
+            android:textColor="#FFFFFF" />
 
     </LinearLayout>
 
