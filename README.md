@@ -171,12 +171,9 @@ Dự án sử dụng kiến trúc **MVVM** với các thành phần:
 
 ## Tạo và Liên kết Dự án Android
 
-### Tạo Dự án Android
+### Dự án Android
 
-1. Mở **Android Studio**, chọn **File** > **New** > **New Project**.
-2. Chọn template **Empty Activity**, đặt tên: `ElectronicSalesHandbook`.
-3. Package name: `com.example.electronicsaleshandbook`.
-4. Minimum SDK: **API 21** (hoặc cao hơn).
+1. Minimum SDK: **API 21** (hoặc cao hơn).
 
 ### Tích hợp Google Sheets API
 
