@@ -197,7 +197,7 @@
             android:backgroundTint="#03A9F4"
             android:text="Sửa"
             android:textStyle="bold"
-            android:textColor="#FFFFFF" />
+            android:textColor="#333333" />
 
         <Button
             android:id="@+id/btnLuu"
@@ -209,7 +209,7 @@
             android:enabled="false"
             android:text="Lưu"
             android:textStyle="bold"
-            android:textColor="#FFFFFF" />
+            android:textColor="#333333" />
 
         <Button
             android:id="@+id/btnXoa"
@@ -219,7 +219,7 @@
             android:backgroundTint="#F44336"
             android:text="Xoá"
             android:textStyle="bold"
-            android:textColor="#FFFFFF" />
+            android:textColor="#333333" />
 
     </LinearLayout>
 

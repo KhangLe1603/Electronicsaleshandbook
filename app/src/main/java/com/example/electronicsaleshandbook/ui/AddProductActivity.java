@@ -83,25 +83,100 @@ public class AddProductActivity extends AppCompatActivity {
             String unit = edtDonViTinh.getText().toString().trim();
             String description = edtMoTa.getText().toString().trim();
 
-            if (name.isEmpty() || unitPriceRaw.isEmpty() || sellingPriceRaw.isEmpty()) {
-                Toast.makeText(this, "Vui lòng nhập đầy đủ thông tin bắt buộc", Toast.LENGTH_SHORT).show();
-            } else {
-                String unitPrice = unitPriceRaw.replaceAll("[^0-9]", "");
-                String sellingPrice = sellingPriceRaw.replaceAll("[^0-9]", "");
-
-                viewModel.addProduct(name, description, unitPrice, sellingPrice, unit);
-                Toast.makeText(this, "Đang thêm sản phẩm...", Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent();
-                intent.putExtra("REFRESH", true);
-                setResult(RESULT_OK, intent);
-                finish();
+            if (!validateInputs(name, unitPriceRaw, sellingPriceRaw, unit, description)) {
+                return;
             }
+
+            String unitPrice = unitPriceRaw.replaceAll("[^0-9]", "");
+            String sellingPrice = sellingPriceRaw.replaceAll("[^0-9]", "");
+
+            viewModel.addProduct(name, description, unitPrice, sellingPrice, unit);
+            Toast.makeText(this, "Đang thêm sản phẩm...", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent();
+            intent.putExtra("REFRESH", true);
+            setResult(RESULT_OK, intent);
+            finish();
         });
 
         // Xử lý nút Huỷ
         btnHuy.setOnClickListener(v -> finish());
 
 
+    }
+
+    private boolean validateInputs(String name, String unitPriceRaw, String sellingPriceRaw, String unit, String description) {
+        // Validate product name
+        String namePattern = "^[\\p{L}0-9\\s\\-_]+$";
+        if (name.isEmpty()) {
+            Toast.makeText(this, "Tên sản phẩm không được để trống", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        if (!name.matches(namePattern)) {
+            Toast.makeText(this, "Tên sản phẩm chỉ được chứa chữ cái, số, khoảng trắng, dấu gạch ngang hoặc gạch dưới", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        // Validate unit price
+        if (unitPriceRaw.isEmpty()) {
+            Toast.makeText(this, "Đơn giá không được để trống", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        try {
+            long unitPrice = Long.parseLong(unitPriceRaw.replaceAll("[^0-9]", ""));
+            if (unitPrice <= 0) {
+                Toast.makeText(this, "Đơn giá phải lớn hơn 0", Toast.LENGTH_SHORT).show();
+                return false;
+            }
+            if (unitPrice > 1_000_000_000) {
+                Toast.makeText(this, "Đơn giá không được vượt quá 1 tỷ", Toast.LENGTH_SHORT).show();
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            Toast.makeText(this, "Đơn giá không hợp lệ", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        // Validate selling price
+        if (sellingPriceRaw.isEmpty()) {
+            Toast.makeText(this, "Giá bán không được để trống", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        try {
+            long sellingPrice = Long.parseLong(sellingPriceRaw.replaceAll("[^0-9]", ""));
+            long unitPrice = Long.parseLong(unitPriceRaw.replaceAll("[^0-9]", ""));
+            if (sellingPrice <= 0) {
+                Toast.makeText(this, "Giá bán phải lớn hơn 0", Toast.LENGTH_SHORT).show();
+                return false;
+            }
+            if (sellingPrice > 1_000_000_000) {
+                Toast.makeText(this, "Giá bán không được vượt quá 1 tỷ", Toast.LENGTH_SHORT).show();
+                return false;
+            }
+            if (sellingPrice < unitPrice) {
+                Toast.makeText(this, "Giá bán không được nhỏ hơn đơn giá", Toast.LENGTH_SHORT).show();
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            Toast.makeText(this, "Giá bán không hợp lệ", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        // Validate unit (optional)
+        if (!unit.isEmpty()) {
+            String unitPattern = "^[\\p{L}0-9\\s\\-_]+$";
+            if (!unit.matches(unitPattern)) {
+                Toast.makeText(this, "Đơn vị tính chỉ được chứa chữ cái, số, khoảng trắng, dấu gạch ngang hoặc gạch dưới", Toast.LENGTH_SHORT).show();
+                return false;
+            }
+        }
+
+        // Validate description (optional)
+        if (!description.isEmpty() && description.length() > 500) {
+            Toast.makeText(this, "Mô tả không được vượt quá 500 ký tự", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        return true;
     }
 
     private String formatCurrency(String input) {

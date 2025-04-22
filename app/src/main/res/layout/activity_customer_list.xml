@@ -43,7 +43,7 @@
                 android:layout_margin="8dp"
                 android:background="@drawable/search_bar_bg"
                 android:drawablePadding="8dp"
-                android:hint="Tìm kiếm"
+                android:hint="Tìm kiếm (tên khách hàng/SĐT/Địa chỉ)"
                 android:paddingStart="12dp"
                 android:textSize="16sp" />
 

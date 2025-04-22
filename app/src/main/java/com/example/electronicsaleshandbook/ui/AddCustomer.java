@@ -3,6 +3,8 @@ package com.example.electronicsaleshandbook.ui;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -25,6 +27,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.graphics.Insets;
 import android.view.View;
+import java.text.ParseException;
 
 public class AddCustomer extends AppCompatActivity {
     private EditText etSurName, etFirstName, etPhone, etEmail, etBirthday, etAddress;
@@ -76,8 +79,6 @@ public class AddCustomer extends AppCompatActivity {
         // Xử lý nút Back
         btnBack.setOnClickListener(v -> finish());
 
-        etBirthday.setOnClickListener(v -> showDatePickerDialog());
-
         String[] genderOptions = {"Nam", "Nữ"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
                 this,
@@ -85,6 +86,44 @@ public class AddCustomer extends AppCompatActivity {
                 genderOptions
         );
         etGender.setAdapter(adapter);
+
+        // Định dạng ngày sinh
+        etBirthday.addTextChangedListener(new TextWatcher() {
+            private String current = "";
+            private final String separator = "/";
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                String input = s.toString().replaceAll("[^0-9]", "");
+                if (!input.equals(current)) {
+                    String formatted = formatDate(input);
+                    current = input;
+                    etBirthday.removeTextChangedListener(this);
+                    etBirthday.setText(formatted);
+                    etBirthday.setSelection(formatted.length());
+                    etBirthday.addTextChangedListener(this);
+                }
+            }
+
+            private String formatDate(String input) {
+                if (input.length() == 0) return "";
+                StringBuilder formatted = new StringBuilder();
+                int length = Math.min(input.length(), 8);
+                for (int i = 0; i < length; i++) {
+                    formatted.append(input.charAt(i));
+                    if (i == 1 || i == 3) {
+                        formatted.append(separator);
+                    }
+                }
+                return formatted.toString();
+            }
+        });
 
         // Xử lý nút Thêm
         btnAdd.setOnClickListener(v -> {
@@ -96,9 +135,8 @@ public class AddCustomer extends AppCompatActivity {
             String address = etAddress.getText().toString().trim();
             String gender = etGender.getText().toString().trim();
 
-            // Kiểm tra thông tin bắt buộc
-            if (surname.isEmpty() || firstName.isEmpty() || phone.isEmpty() || address.isEmpty()) {
-                Toast.makeText(this, "Vui lòng nhập đầy đủ họ, tên, số điện thoại và địa chỉ", Toast.LENGTH_SHORT).show();
+            // Validation
+            if (!validateInputs(surname, firstName, phone, email, birthday, address)) {
                 return;
             }
 
@@ -119,40 +157,63 @@ public class AddCustomer extends AppCompatActivity {
 
     }
 
-    private void showDatePickerDialog() {
-        // Lấy ngày hiện tại làm mặc định
-        Calendar calendar = Calendar.getInstance();
-        int year = calendar.get(Calendar.YEAR);
-        int month = calendar.get(Calendar.MONTH);
-        int day = calendar.get(Calendar.DAY_OF_MONTH);
+    private boolean validateInputs(String surname, String firstName, String phone, String email, String birthday, String address) {
+        // Validate surname and first name (only letters, spaces, and Vietnamese characters)
+        String namePattern = "^[a-zA-ZÀ-ỹ\\s]+$";
+        if (surname.isEmpty() || !surname.matches(namePattern)) {
+            Toast.makeText(this, "Họ và đệm không hợp lệ (chỉ chứa chữ cái và khoảng trắng)", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        if (firstName.isEmpty() || !firstName.matches(namePattern)) {
+            Toast.makeText(this, "Tên không hợp lệ (chỉ chứa chữ cái và khoảng trắng)", Toast.LENGTH_SHORT).show();
+            return false;
+        }
 
-        // Nếu etBirthday đã có giá trị, parse để đặt ngày mặc định
-        String birthdayText = etBirthday.getText().toString().trim();
-        if (!birthdayText.isEmpty()) {
+        // Validate phone (Vietnamese mobile numbers: 10-11 digits, starting with 03, 05, 07, 08, 09)
+        String phonePattern = "^(03|05|07|08|09)\\d{8,9}$";
+        if (phone.isEmpty() || !phone.matches(phonePattern)) {
+            Toast.makeText(this, "Số điện thoại không hợp lệ (phải bắt đầu bằng 03, 05, 07, 08, 09 và có 10-11 chữ số)", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        // Validate email (optional, but if provided, must be valid)
+        String emailPattern = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
+        if (!email.isEmpty() && !email.matches(emailPattern)) {
+            Toast.makeText(this, "Email không hợp lệ", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        // Validate birthday (must be in dd/MM/yyyy format and a valid date)
+        if (!birthday.isEmpty()) {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            sdf.setLenient(false);
             try {
-                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-                calendar.setTime(sdf.parse(birthdayText));
-                year = calendar.get(Calendar.YEAR);
-                month = calendar.get(Calendar.MONTH);
-                day = calendar.get(Calendar.DAY_OF_MONTH);
-            } catch (Exception e) {
-                Log.e("Customer_detail", "Invalid birthday format: " + birthdayText, e);
+                java.util.Date date = sdf.parse(birthday);
+                Calendar calendar = Calendar.getInstance();
+                calendar.setTime(date);
+                Calendar today = Calendar.getInstance();
+                if (calendar.after(today)) {
+                    Toast.makeText(this, "Ngày sinh không được ở tương lai", Toast.LENGTH_SHORT).show();
+                    return false;
+                }
+                int year = calendar.get(Calendar.YEAR);
+                if (year < 1900) {
+                    Toast.makeText(this, "Năm sinh không hợp lệ (phải từ 1900 trở lên)", Toast.LENGTH_SHORT).show();
+                    return false;
+                }
+            } catch (ParseException e) {
+                Toast.makeText(this, "Ngày sinh không hợp lệ (định dạng phải là dd/MM/yyyy)", Toast.LENGTH_SHORT).show();
+                return false;
             }
         }
 
-        // Tạo DatePickerDialog
-        DatePickerDialog datePickerDialog = new DatePickerDialog(
-                this,
-                (view, selectedYear, selectedMonth, selectedDay) -> {
-                    // Định dạng ngày thành dd/MM/yyyy
-                    String formattedDate = String.format(Locale.getDefault(), "%02d/%02d/%d",
-                            selectedDay, selectedMonth + 1, selectedYear);
-                    etBirthday.setText(formattedDate);
-                },
-                year, month, day);
+        // Validate address
+        if (address.isEmpty()) {
+            Toast.makeText(this, "Địa chỉ không được để trống", Toast.LENGTH_SHORT).show();
+            return false;
+        }
 
-        // Giới hạn ngày tối đa là hôm nay
-        datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
-        datePickerDialog.show();
+        return true;
     }
+
 }

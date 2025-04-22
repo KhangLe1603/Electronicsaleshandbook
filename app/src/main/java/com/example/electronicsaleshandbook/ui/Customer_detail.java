@@ -1,16 +1,16 @@
 package com.example.electronicsaleshandbook.ui;
 
-import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -28,7 +28,6 @@ import com.example.electronicsaleshandbook.adapter.ProductDetailAdapter;
 import com.example.electronicsaleshandbook.model.Customer;
 import com.example.electronicsaleshandbook.model.CustomerProductLink;
 import com.example.electronicsaleshandbook.model.Product;
-import com.example.electronicsaleshandbook.repository.CustomerRepository;
 import com.example.electronicsaleshandbook.repository.SheetRepository;
 import com.example.electronicsaleshandbook.viewmodel.CustomerProductLinkViewModel;
 import com.example.electronicsaleshandbook.viewmodel.CustomerViewModel;
@@ -37,6 +36,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -47,11 +47,10 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.core.graphics.Insets;
 
 public class Customer_detail extends AppCompatActivity {
-    private EditText etPhone, etEmail, etBirthday, etAddress, editId;
+    private EditText etSurname, etFirstName, etPhone, etEmail, etBirthday, etAddress, etMaKH;
     private Button btnSua, btnLuu, btnXoa;
     private CustomerViewModel viewModel;
     private Customer customer;
-    private TextView tvCustomerName;
     private RecyclerView productsRecyclerView;
     private ProductDetailAdapter productAdapter;
     private CustomerProductLinkViewModel linkViewModel;
@@ -72,7 +71,7 @@ public class Customer_detail extends AppCompatActivity {
             Insets statusBarInsets = insets.getInsets(WindowInsetsCompat.Type.statusBars());
             v.setPadding(
                     v.getPaddingLeft(),
-                    statusBarInsets.top,  // dùng đúng khoảng cách status bar thực tế
+                    statusBarInsets.top,
                     v.getPaddingRight(),
                     v.getPaddingBottom()
             );
@@ -81,8 +80,9 @@ public class Customer_detail extends AppCompatActivity {
 
         ImageButton btnBack = findViewById(R.id.imageButton);
         btnBack.setOnClickListener(v -> finish());
-        editId = findViewById(R.id.etMaKH);
-        tvCustomerName = findViewById(R.id.tvCustomerName);
+        etMaKH = findViewById(R.id.etMaKH);
+        etSurname = findViewById(R.id.etSurname);
+        etFirstName = findViewById(R.id.etFirstName);
         etPhone = findViewById(R.id.etPhone);
         etEmail = findViewById(R.id.etEmail);
         etBirthday = findViewById(R.id.etBirthday);
@@ -121,7 +121,43 @@ public class Customer_detail extends AppCompatActivity {
             return;
         }
 
+        // Định dạng ngày sinh
+        etBirthday.addTextChangedListener(new TextWatcher() {
+            private String current = "";
+            private final String separator = "/";
 
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                String input = s.toString().replaceAll("[^0-9]", "");
+                if (!input.equals(current)) {
+                    String formatted = formatDate(input);
+                    current = input;
+                    etBirthday.removeTextChangedListener(this);
+                    etBirthday.setText(formatted);
+                    etBirthday.setSelection(formatted.length());
+                    etBirthday.addTextChangedListener(this);
+                }
+            }
+
+            private String formatDate(String input) {
+                if (input.length() == 0) return "";
+                StringBuilder formatted = new StringBuilder();
+                int length = Math.min(input.length(), 8);
+                for (int i = 0; i < length; i++) {
+                    formatted.append(input.charAt(i));
+                    if (i == 1 || i == 3) {
+                        formatted.append(separator);
+                    }
+                }
+                return formatted.toString();
+            }
+        });
 
         // Khởi tạo RecyclerView và Adapter
         productAdapter = new ProductDetailAdapter();
@@ -212,46 +248,44 @@ public class Customer_detail extends AppCompatActivity {
         btnXoa.setAlpha(1.0f);
         setEditMode(false);
 
-
         btnSua.setOnClickListener(v -> {
             setEditMode(true);
             btnLuu.setEnabled(true);
             btnLuu.setBackgroundColor(Color.parseColor("#4CAF50"));
             btnSua.setEnabled(false);
             btnSua.setAlpha(0.5f);
-
-            // Chuyển nút Xoá thành nút Huỷ
             btnXoa.setText("Huỷ");
             btnXoa.setAlpha(1.0f);
             btnXoa.setEnabled(true);
             isEditing = true;
         });
 
-
         btnLuu.setOnClickListener(v -> {
+            String surname = etSurname.getText().toString().trim();
+            String firstName = etFirstName.getText().toString().trim();
             String phone = etPhone.getText().toString().trim();
             String email = etEmail.getText().toString().trim();
             String birthday = etBirthday.getText().toString().trim();
             String address = etAddress.getText().toString().trim();
             String gender = etGender.getText().toString().trim();
 
-            if (phone.isEmpty() || address.isEmpty()) {
-                Toast.makeText(this, "Vui lòng nhập đầy đủ thông tin bắt buộc", Toast.LENGTH_SHORT).show();
+            // Validation
+            if (!validateInputs(surname, firstName, phone, email, birthday, address, gender)) {
                 return;
             }
 
-            viewModel.updateCustomer(customer.getSheetRowIndex(), customer.getSurname(), customer.getFirstName(),
-                    address, phone, email, birthday, gender);
+            viewModel.updateCustomer(customer.getSheetRowIndex(), surname, firstName, address, phone, email, birthday, gender);
             Toast.makeText(this, "Đang cập nhật khách hàng...", Toast.LENGTH_SHORT).show();
             setEditMode(false);
             btnLuu.setEnabled(false);
-            btnLuu.setAlpha(0.5f);
+            btnLuu.setBackgroundColor(getColor(android.R.color.darker_gray));
+            btnLuu.setAlpha(1.0f);
             btnSua.setEnabled(true);
             btnSua.setAlpha(1.0f);
             btnXoa.setEnabled(true);
             btnXoa.setAlpha(1.0f);
-            isEditing = false;
             btnXoa.setText("Xóa");
+            isEditing = false;
 
             Intent intent = new Intent();
             intent.putExtra("REFRESH", true);
@@ -261,25 +295,20 @@ public class Customer_detail extends AppCompatActivity {
 
         btnXoa.setOnClickListener(v -> {
             if (isEditing) {
-                // Đang ở chế độ sửa → giờ là nút Huỷ
                 setEditMode(false);
                 btnLuu.setEnabled(false);
                 btnLuu.setBackgroundColor(getColor(android.R.color.darker_gray));
-
+                btnLuu.setAlpha(1.0f);
                 btnSua.setEnabled(true);
                 btnSua.setAlpha(1.0f);
-                // Khôi phục dữ liệu ban đầu
                 displayCustomerDetails();
-
-                // Đổi lại nút Huỷ thành Xoá
-                btnXoa.setText("Xoá");
+                btnXoa.setText("Xóa");
                 btnXoa.setAlpha(1.0f);
                 btnXoa.setEnabled(true);
                 isEditing = false;
                 return;
             }
 
-            // Không phải đang sửa → xử lý xoá thật
             new AlertDialog.Builder(this)
                     .setTitle("Xác nhận xóa")
                     .setMessage("Bạn có chắc chắn muốn xóa khách hàng này không?")
@@ -296,22 +325,29 @@ public class Customer_detail extends AppCompatActivity {
                     .setCancelable(true)
                     .show();
         });
-
     }
 
     private void displayCustomerDetails() {
-        editId.setText(customer.getId());
-        editId.setEnabled(false);
-        tvCustomerName.setText(customer.getFullName());
+        etMaKH.setText(customer.getId());
+        etMaKH.setEnabled(false);
+        etSurname.setText(customer.getSurname());
+        etFirstName.setText(customer.getFirstName());
         etPhone.setText(customer.getPhone());
         etEmail.setText(customer.getEmail());
         etBirthday.setText(customer.getBirthday());
         etAddress.setText(customer.getAddress());
         etGender.setText(customer.getGender());
-
     }
 
     private void setEditMode(boolean isEditable) {
+        etSurname.setFocusable(isEditable);
+        etSurname.setFocusableInTouchMode(isEditable);
+        etSurname.setClickable(isEditable);
+
+        etFirstName.setFocusable(isEditable);
+        etFirstName.setFocusableInTouchMode(isEditable);
+        etFirstName.setClickable(isEditable);
+
         etPhone.setFocusable(isEditable);
         etPhone.setFocusableInTouchMode(isEditable);
         etPhone.setClickable(isEditable);
@@ -323,12 +359,6 @@ public class Customer_detail extends AppCompatActivity {
         etBirthday.setFocusable(isEditable);
         etBirthday.setFocusableInTouchMode(isEditable);
         etBirthday.setClickable(isEditable);
-        // Chỉ gán OnClickListener khi ở chế độ chỉnh sửa
-        if (isEditable) {
-            etBirthday.setOnClickListener(v -> showDatePickerDialog());
-        } else {
-            etBirthday.setOnClickListener(null); // Xóa listener khi không chỉnh sửa
-        }
 
         etAddress.setFocusable(isEditable);
         etAddress.setFocusableInTouchMode(isEditable);
@@ -337,9 +367,8 @@ public class Customer_detail extends AppCompatActivity {
         etGender.setEnabled(isEditable);
         etGender.setFocusable(isEditable);
         etGender.setFocusableInTouchMode(false);
-        etGender.setClickable(isEditable); // chỉ cho bấm khi đang sửa
+        etGender.setClickable(isEditable);
         if (isEditable) {
-            // Gán lại adapter mỗi khi vào chế độ sửa
             String[] genderOptions = {"Nam", "Nữ"};
             ArrayAdapter<String> adapter = new ArrayAdapter<>(
                     this,
@@ -352,8 +381,6 @@ public class Customer_detail extends AppCompatActivity {
             etGender.setOnClickListener(null);
             etGender.setKeyListener(null);
         }
-
-
     }
 
     private void combineData(MediatorLiveData<List<Product>> customerProductsLiveData,
@@ -392,41 +419,68 @@ public class Customer_detail extends AppCompatActivity {
         return null;
     }
 
-    private void showDatePickerDialog() {
-        // Lấy ngày hiện tại làm mặc định
-        Calendar calendar = Calendar.getInstance();
-        int year = calendar.get(Calendar.YEAR);
-        int month = calendar.get(Calendar.MONTH);
-        int day = calendar.get(Calendar.DAY_OF_MONTH);
+    private boolean validateInputs(String surname, String firstName, String phone, String email, String birthday, String address, String gender) {
+        // Validate surname and first name (only letters, spaces, and Vietnamese characters)
+        String namePattern = "^[a-zA-ZÀ-ỹ\\s]+$";
+        if (surname.isEmpty() || !surname.matches(namePattern)) {
+            Toast.makeText(this, "Họ và đệm không hợp lệ (chỉ chứa chữ cái và khoảng trắng)", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        if (firstName.isEmpty() || !firstName.matches(namePattern)) {
+            Toast.makeText(this, "Tên không hợp lệ (chỉ chứa chữ cái và khoảng trắng)", Toast.LENGTH_SHORT).show();
+            return false;
+        }
 
-        // Nếu etBirthday đã có giá trị, parse để đặt ngày mặc định
-        String birthdayText = etBirthday.getText().toString().trim();
-        if (!birthdayText.isEmpty()) {
+        // Validate phone (Vietnamese mobile numbers: 10-11 digits, starting with 03, 05, 07, 08, 09)
+        String phonePattern = "^(03|05|07|08|09)\\d{8,9}$";
+        if (phone.isEmpty() || !phone.matches(phonePattern)) {
+            Toast.makeText(this, "Số điện thoại không hợp lệ (phải bắt đầu bằng 03, 05, 07, 08, 09 và có 10-11 chữ số)", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        // Validate email (optional, but if provided, must be valid)
+        String emailPattern = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
+        if (!email.isEmpty() && !email.matches(emailPattern)) {
+            Toast.makeText(this, "Email không hợp lệ", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        // Validate birthday (optional, but if provided, must be in dd/MM/yyyy format and a valid date)
+        if (!birthday.isEmpty()) {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            sdf.setLenient(false);
             try {
-                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-                calendar.setTime(sdf.parse(birthdayText));
-                year = calendar.get(Calendar.YEAR);
-                month = calendar.get(Calendar.MONTH);
-                day = calendar.get(Calendar.DAY_OF_MONTH);
-            } catch (Exception e) {
-                Log.e("Customer_detail", "Invalid birthday format: " + birthdayText, e);
+                java.util.Date date = sdf.parse(birthday);
+                Calendar calendar = Calendar.getInstance();
+                calendar.setTime(date);
+                Calendar today = Calendar.getInstance();
+                if (calendar.after(today)) {
+                    Toast.makeText(this, "Ngày sinh không được ở tương lai", Toast.LENGTH_SHORT).show();
+                    return false;
+                }
+                int year = calendar.get(Calendar.YEAR);
+                if (year < 1900) {
+                    Toast.makeText(this, "Năm sinh không hợp lệ (phải từ 1900 trở lên)", Toast.LENGTH_SHORT).show();
+                    return false;
+                }
+            } catch (ParseException e) {
+                Toast.makeText(this, "Ngày sinh không hợp lệ (định dạng phải là dd/MM/yyyy)", Toast.LENGTH_SHORT).show();
+                return false;
             }
         }
 
-        // Tạo DatePickerDialog
-        DatePickerDialog datePickerDialog = new DatePickerDialog(
-                this,
-                (view, selectedYear, selectedMonth, selectedDay) -> {
-                    // Định dạng ngày thành dd/MM/yyyy
-                    String formattedDate = String.format(Locale.getDefault(), "%02d/%02d/%d",
-                            selectedDay, selectedMonth + 1, selectedYear);
-                    etBirthday.setText(formattedDate);
-                },
-                year, month, day);
+        // Validate address
+        if (address.isEmpty()) {
+            Toast.makeText(this, "Địa chỉ không được để trống", Toast.LENGTH_SHORT).show();
+            return false;
+        }
 
-        // Giới hạn ngày tối đa là hôm nay
-        datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
-        datePickerDialog.show();
+        // Validate gender
+        if (!gender.equals("Nam") && !gender.equals("Nữ")) {
+            Toast.makeText(this, "Giới tính phải là 'Nam' hoặc 'Nữ'", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        return true;
     }
-
 }

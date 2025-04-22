@@ -202,12 +202,9 @@
                     android:layout_weight="2"
                     android:layout_marginStart="12dp"
                     android:background="@null"
-                    android:hint="Nhập ngày sinh"
+                    android:hint="Nhập ngày sinh (dd/MM/yyyy)"
                     android:textSize="16sp"
-
-                    android:focusable="false"
-                    android:focusableInTouchMode="false"
-                    android:cursorVisible="false" />
+                    />
 
             </LinearLayout>
 
