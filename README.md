@@ -1,269 +1,304 @@
-Electronic Sales Handbook
-Ứng dụng Electronic Sales Handbook là một ứng dụng Android giúp quản lý thông tin sản phẩm, khách hàng và liên kết giữa khách hàng và sản phẩm thông qua Google Sheets. Ứng dụng sử dụng Firebase Authentication để hỗ trợ đăng nhập bằng email và Google Sign-In.
-Tổng quan
-Ứng dụng bao gồm các chức năng chính:
+# Electronic Sales Handbook
+
+**Electronic Sales Handbook** là ứng dụng Android quản lý thông tin sản phẩm, khách hàng và liên kết khách hàng-sản phẩm thông qua **Google Sheets**. Ứng dụng tích hợp **Firebase Authentication** để hỗ trợ đăng nhập bằng email và **Google Sign-In**.
+
+---
+
+## Tổng quan
+
+Ứng dụng cung cấp các chức năng chính:
+
+- **Quản lý sản phẩm**: Thêm, sửa, xóa, tìm kiếm sản phẩm (lưu trên sheet *Sheet1*).
+- **Quản lý khách hàng**: Thêm, sửa, xóa, tìm kiếm khách hàng (lưu trên sheet *KhachHang*).
+- **Quản lý liên kết khách hàng-sản phẩm**: Tạo và xem liên kết (lưu trên sheet *CustomerProductLink*).
+- **Xác thực người dùng**: Đăng nhập/đăng ký bằng email và **Google Sign-In** qua **Firebase Authentication**.
 
-Quản lý sản phẩm: Thêm, sửa, xóa và tìm kiếm sản phẩm (lưu trữ trên Google Sheet Sheet1).
-Quản lý khách hàng: Thêm, sửa, xóa và tìm kiếm khách hàng (lưu trữ trên Google Sheet KhachHang).
-Quản lý liên kết khách hàng-sản phẩm: Tạo và xem liên kết giữa khách hàng và sản phẩm (lưu trữ trên Google Sheet CustomerProductLink).
-Xác thực người dùng: Hỗ trợ đăng nhập/đăng ký bằng email và Google Sign-In thông qua Firebase Authentication.
+Dự án sử dụng kiến trúc **MVVM** với các thành phần:
 
-Dự án sử dụng kiến trúc MVVM, với các repository (SheetRepository, CustomerRepository, CustomerProductLinkRepository, AuthRepository) và ViewModel (ProductViewModel, CustomerViewModel, CustomerProductLinkViewModel, LinkViewModel, AuthViewModel) để quản lý dữ liệu và logic.
-Cấu hình Google Sheets
-Ứng dụng tích hợp với Google Sheets API để lưu trữ và quản lý dữ liệu. Dưới đây là thông tin cấu hình:
-Thông tin Google Sheet
+- **Repository**: `SheetRepository`, `CustomerRepository`, `CustomerProductLinkRepository`, `AuthRepository`.
+- **ViewModel**: `ProductViewModel`, `CustomerViewModel`, `CustomerProductLinkViewModel`, `LinkViewModel`, `AuthViewModel`.
 
-ID Bảng tính (Spreadsheet ID): 1T0vRbdFnjTUTKkgcpbSuvjNnbG9eD49j_xjlknWtj_A
+---
 
-Đây là mã định danh duy nhất của Google Sheet được sử dụng trong ứng dụng.
-Được khai báo trong các class SheetRepository, CustomerRepository, CustomerProductLinkRepository dưới dạng hằng số SPREADSHEET_ID.
-Để thay đổi ID Bảng tính, chỉnh sửa hằng số SPREADSHEET_ID trong các class trên.
+## Cấu hình Google Sheets
 
+Ứng dụng sử dụng **Google Sheets API** để lưu trữ và quản lý dữ liệu.
 
-Tên các Sheet và cấu trúc cột:
+### Thông tin Google Sheet
 
-Sheet Sản phẩm: Sheet1
-Cấu trúc cột:
-A: STT (Số thứ tự, không sử dụng trong ứng dụng).
-B: MÃ SP (Mã sản phẩm, ví dụ: SP001).
-C: Tên SPDV (Tên sản phẩm/dịch vụ).
-D: Mô tả.
-E: Đơn giá.
-F: Giá bán.
-G: Đơn vị tính.
+- **ID Bảng tính (Spreadsheet ID)**:  
+  `1T0vRbdFnjTUTKkgcpbSuvjNnbG9eD49j_xjlknWtj_A`
 
+  - Mã định danh duy nhất của Google Sheet.
+  - Khai báo trong các class:  
+    - `SheetRepository`  
+    - `CustomerRepository`  
+    - `CustomerProductLinkRepository`  
+    (hằng số `SPREADSHEET_ID`).
+  - Để thay đổi, chỉnh sửa `SPREADSHEET_ID` trong các class trên.
 
-Sử dụng: Trong SheetRepository (fetchProductsWithBackoff) và ProductViewModel (addProduct, updateProduct, deleteProduct).
+- **Tên các Sheet và cấu trúc cột**:
 
+  #### Sheet Sản phẩm: `Sheet1`
+  | Cột | Tên            | Mô tả                          |
+  |-----|----------------|--------------------------------|
+  | A   | STT            | Số thứ tự (không sử dụng)      |
+  | B   | MÃ SP          | Mã sản phẩm (VD: SP001)        |
+  | C   | Tên SPDV       | Tên sản phẩm/dịch vụ           |
+  | D   | Mô tả          | Mô tả sản phẩm                 |
+  | E   | Đơn giá        | Giá gốc                        |
+  | F   | Giá bán        | Giá bán ra                     |
+  | G   | Đơn vị tính    | Đơn vị (VD: cái, bộ)           |
 
-Sheet Khách hàng: KhachHang
-Cấu trúc cột:
-A: STT (Số thứ tự, không sử dụng trong ứng dụng).
-B: MÃ KH (Mã khách hàng, ví dụ: KH001).
-C: Họ và đệm.
-D: Tên.
-E: Địa chỉ.
-F: Số điện thoại.
-G: Email.
-H: Ngày sinh.
-I: Giới tính.
+  **Sử dụng**:  
+  - `SheetRepository` (`fetchProductsWithBackoff`).  
+  - `ProductViewModel` (`addProduct`, `updateProduct`, `deleteProduct`).
 
+  #### Sheet Khách hàng: `KhachHang`
+  | Cột | Tên            | Mô tả                          |
+  |-----|----------------|--------------------------------|
+  | A   | STT            | Số thứ tự (không sử dụng)      |
+  | B   | MÃ KH          | Mã khách hàng (VD: KH001)      |
+  | C   | Họ và đệm      | Họ và đệm khách hàng           |
+  | D   | Tên            | Tên khách hàng                 |
+  | E   | Địa chỉ        | Địa chỉ khách hàng             |
+  | F   | Số điện thoại  | Số điện thoại                  |
+  | G   | Email          | Email khách hàng               |
+  | H   | Ngày sinh      | Ngày sinh                      |
+  | I   | Giới tính      | Giới tính (Nam/Nữ)             |
 
-Sử dụng: Trong CustomerRepository (fetchCustomersWithBackoff) và CustomerViewModel (addCustomer, updateCustomer, deleteCustomer).
+  **Sử dụng**:  
+  - `CustomerRepository` (`fetchCustomersWithBackoff`).  
+  - `CustomerViewModel` (`addCustomer`, `updateCustomer`, `deleteCustomer`).
 
+  #### Sheet Liên kết Khách hàng-Sản phẩm: `CustomerProductLink`
+  | Cột | Tên            | Mô tả                          |
+  |-----|----------------|--------------------------------|
+  | A   | STT            | Số thứ tự (không sử dụng)      |
+  | B   | MÃ KH          | Mã khách hàng                  |
+  | C   | MÃ SP          | Mã sản phẩm                    |
+  | D   | Tên đầy đủ     | Tên khách hàng                 |
+  | E   | Tên sản phẩm   | Tên sản phẩm                   |
 
-Sheet Liên kết Khách hàng-Sản phẩm: CustomerProductLink
-Cấu trúc cột:
-A: STT (Số thứ tự, không sử dụng trong ứng dụng).
-B: MÃ KH (Mã khách hàng).
-C: MÃ SP (Mã sản phẩm).
-D: Tên đầy đủ (Tên khách hàng).
-E: Tên sản phẩm.
+  **Sử dụng**:  
+  - `SheetRepository` (`fetchLinksWithBackoff`, `createLink`).  
+  - `CustomerProductLinkRepository` (`fetchLinksWithBackoff`).
 
+### Cập nhật Cấu hình Google Sheet
 
-Sử dụng: Trong SheetRepository (fetchLinksWithBackoff, createLink) và CustomerProductLinkRepository (fetchLinksWithBackoff).
+Để thay đổi ID bảng tính hoặc tên sheet:
 
+1. Mở các class trong package `com.example.electronicsaleshandbook.repository`:  
+   - `SheetRepository`  
+   - `CustomerRepository`  
+   - `CustomerProductLinkRepository`
+2. Cập nhật hằng số `SPREADSHEET_ID`.
+3. Cập nhật tên sheet trong các phương thức:  
+   - `Sheet1` trong `fetchProductsWithBackoff` (`SheetRepository`).  
+   - `KhachHang` trong `fetchCustomersWithBackoff` (`CustomerRepository`).  
+   - `CustomerProductLink` trong `fetchLinksWithBackoff` (`SheetRepository`, `CustomerProductLinkRepository`) và `createLink` (`SheetRepository`).
+4. Đảm bảo Google Sheet mới có cấu trúc cột như trên.
 
+### Lưu ý
 
+- File *service_account.json* (thư mục *assets*) dùng để xác thực **Google Sheets API**. Đảm bảo file tồn tại và đúng định dạng.
+- Nếu tạo Google Sheet mới, chia sẻ quyền **Editor** với email tài khoản dịch vụ (lấy từ *service_account.json*).
+- Các repository sử dụng cache và thử lại theo cấp số nhân (exponential backoff). Điều chỉnh `MIN_REFRESH_INTERVAL` (mặc định 2000ms) nếu cần.
 
+---
 
-Cập nhật Cấu hình Google Sheet
-Để thay đổi ID Bảng tính hoặc tên sheet:
+## Cấu hình Firebase Authentication
 
-Mở các class SheetRepository, CustomerRepository, và CustomerProductLinkRepository trong package com.example.electronicsaleshandbook.repository.
-Cập nhật hằng số SPREADSHEET_ID với ID Bảng tính mới.
-Cập nhật tên sheet trong các phương thức liên quan:
-Sheet1 trong fetchProductsWithBackoff (SheetRepository).
-KhachHang trong fetchCustomersWithBackoff (CustomerRepository).
-CustomerProductLink trong fetchLinksWithBackoff (SheetRepository, CustomerProductLinkRepository) và createLink (SheetRepository).
+Ứng dụng sử dụng **Firebase Authentication** để hỗ trợ đăng nhập/đăng ký bằng email và **Google Sign-In**.
 
+### Web Client ID
 
-Đảm bảo Google Sheet mới có cấu trúc cột giống như mô tả ở trên để tránh lỗi khi phân tích dữ liệu.
+- **Web Client ID**:  
+  `492706936531-qppvdsgr5p6jhhe2439cit6kmb8r1deg.apps.googleusercontent.com`
 
-Lưu ý
+  - Khai báo trong `AuthRepository` để cấu hình **Google Sign-In**.
+  - Là ID ứng dụng web trong **Firebase Console** cho xác thực Google.
 
-Ứng dụng sử dụng tài khoản dịch vụ (service_account.json) trong thư mục assets để xác thực với Google Sheets API. Đảm bảo file này tồn tại và được cấu hình đúng.
-Nếu tạo Google Sheet mới, chia sẻ quyền chỉnh sửa với email tài khoản dịch vụ (lấy từ file service_account.json).
-Các repository sử dụng cơ chế cache và thử lại theo cấp số nhân (exponential backoff) để xử lý giới hạn API. Có thể điều chỉnh MIN_REFRESH_INTERVAL (mặc định 2000ms) nếu cần.
+- **Cách lấy Web Client ID**:
 
-Cấu hình Firebase Authentication
-Ứng dụng sử dụng Firebase Authentication để hỗ trợ đăng nhập/đăng ký bằng email và Google Sign-In.
-Web Client ID
+  1. Truy cập [Firebase Console](https://console.firebase.google.com/).
+  2. Chọn dự án.
+  3. Vào **Authentication** > **Sign-in method** > **Google**.
+  4. Trong **Web SDK configuration**, sao chép **Web client ID**.
+  5. Cập nhật trong `AuthRepository` (phương thức khởi tạo `GoogleSignInOptions`).
 
-Web Client ID: 492706936531-qppvdsgr5p6jhhe2439cit6kmb8r1deg.apps.googleusercontent.com
+### Thiết lập Firebase
 
-Được khai báo trong AuthRepository để cấu hình Google Sign-In.
-Đây là ID của ứng dụng web được tạo trong Firebase Console để hỗ trợ xác thực Google.
+Để tích hợp **Firebase**:
 
+1. **Tạo dự án Firebase**:
 
-Cách lấy Web Client ID:
+   - Truy cập [Firebase Console](https://console.firebase.google.com/).
+   - Nhấn **Add project**, đặt tên và hoàn thành các bước.
+   - Tải file *google-services.json* và đặt vào thư mục *app*.
 
-Truy cập Firebase Console.
-Chọn dự án của bạn.
-Vào Authentication > Sign-in method > Google.
-Trong phần Web SDK configuration, sao chép Web client ID.
-Cập nhật Web Client ID trong AuthRepository (phương thức khởi tạo GoogleSignInOptions).
+2. **Thêm Firebase SDK**:
 
+   - File *build.gradle* (project-level):
 
+     ```gradle
+     buildscript {
+         dependencies {
+             classpath 'com.google.gms:google-services:4.4.2'
+         }
+     }
+     ```
 
-Thiết lập Firebase
-Để tích hợp Firebase vào dự án Android:
+   - File *build.gradle* (app-level):
 
-Tạo dự án Firebase:
+     ```gradle
+     apply plugin: 'com.google.gms.google-services'
 
-Truy cập Firebase Console.
-Nhấn Add project, đặt tên dự án và làm theo các bước hướng dẫn.
-Tải file cấu hình google-services.json và đặt vào thư mục app của dự án.
+     dependencies {
+         implementation 'com.google.firebase:firebase-auth:23.0.0'
+         implementation 'com.google.android.gms:play-services-auth:21.2.0'
+     }
+     ```
 
+3. **Kích hoạt Google Sign-In**:
 
-Thêm Firebase SDK:
+   - Trong **Firebase Console**, vào **Authentication** > **Sign-in method**.
+   - Kích hoạt **Email/Password** và **Google**.
 
-Trong file build.gradle (project-level), thêm:buildscript {
-    dependencies {
-        classpath 'com.google.gms:google-services:4.4.2'
-    }
-}
+4. **Cấu hình SHA-1** (xem phần SHA-1).
 
+---
 
-Trong file build.gradle (app-level), thêm:apply plugin: 'com.google.gms.google-services'
+## Tạo và Liên kết Dự án Android
 
-dependencies {
-    implementation 'com.google.firebase:firebase-auth:23.0.0'
-    implementation 'com.google.android.gms:play-services-auth:21.2.0'
-}
+### Tạo Dự án Android
 
+1. Mở **Android Studio**, chọn **File** > **New** > **New Project**.
+2. Chọn template **Empty Activity**, đặt tên: `ElectronicSalesHandbook`.
+3. Package name: `com.example.electronicsaleshandbook`.
+4. Minimum SDK: **API 21** (hoặc cao hơn).
 
+### Tích hợp Google Sheets API
 
+1. **Tạo tài khoản dịch vụ**:
 
-Kích hoạt Google Sign-In:
+   - Truy cập [Google Cloud Console](https://console.cloud.google.com/).
+   - Tạo hoặc chọn dự án.
+   - Vào **APIs & Services** > **Enable APIs and Services**, kích hoạt **Google Sheets API**.
+   - Vào **Credentials** > **Create Credentials** > **Service Account**.
+   - Tạo tài khoản dịch vụ, chọn vai trò **Editor**, tải file *service_account.json*.
+   - Đặt file vào thư mục *app/src/main/assets*.
 
-Trong Firebase Console, vào Authentication > Sign-in method.
-Kích hoạt Email/Password và Google làm phương thức đăng nhập.
+2. **Thêm thư viện Google API Client**:
 
+   - File *build.gradle* (app-level):
 
-Cấu hình SHA-1 (xem phần SHA-1 bên dưới).
+     ```gradle
+     implementation 'com.google.api-client:google-api-client:2.2.0'
+     implementation 'com.google.apis:google-api-services-sheets:v4-rev20220927-2.0.0'
+     implementation 'com.google.http-client:google-http-client-jackson2:1.43.3'
+     ```
 
+3. **Chia sẻ Google Sheet**:
 
-Tạo và Liên kết Dự án Android
-Tạo Dự án Android
+   - Mở Google Sheet với ID `1T0vRbdFnjTUTKkgcpbSuvjNnbG9eD49j_xjlknWtj_A`.
+   - Nhấn **Share**, nhập email tài khoản dịch vụ (từ *service_account.json*), cấp quyền **Editor**.
 
-Mở Android Studio, chọn File > New > New Project.
-Chọn template (ví dụ: Empty Activity) và đặt tên ứng dụng là ElectronicSalesHandbook.
-Đặt package name là com.example.electronicsaleshandbook.
-Chọn API 21 (hoặc cao hơn) làm Minimum SDK.
+### Tích hợp Firebase Authentication
 
-Tích hợp Google Sheets API
+- Thực hiện các bước trong **Thiết lập Firebase**.
+- Đảm bảo *google-services.json* nằm trong thư mục *app*.
+- Cập nhật **Web Client ID** trong `AuthRepository`.
 
-Tạo tài khoản dịch vụ:
+### Đồng bộ dự án
 
-Truy cập Google Cloud Console.
-Tạo dự án mới hoặc chọn dự án hiện có.
-Vào APIs & Services > Enable APIs and Services, tìm và kích hoạt Google Sheets API.
-Vào Credentials > Create Credentials > Service Account.
-Tạo tài khoản dịch vụ, chọn vai trò Editor và tải file JSON (đặt tên là service_account.json).
-Đặt file service_account.json vào thư mục app/src/main/assets.
+- Nhấn **Sync Project with Gradle Files** trong **Android Studio**.
 
+---
 
-Thêm thư viện Google API Client:
+## SHA-1
 
-Trong file build.gradle (app-level), thêm:implementation 'com.google.api-client:google-api-client:2.2.0'
-implementation 'com.google.apis:google-api-services-sheets:v4-rev20220927-2.0.0'
-implementation 'com.google.http-client:google-http-client-jackson2:1.43.3'
+**SHA-1** là mã băm xác thực ứng dụng Android với **Firebase**, cần cho **Google Sign-In**.
 
+### Vai trò của SHA-1
 
+- Đảm bảo ứng dụng được xác minh an toàn khi dùng **Firebase Authentication**.
+- Cần thêm SHA-1 vào **Firebase Console** để **Google Sign-In** hoạt động.
 
+### Cách lấy SHA-1
 
-Chia sẻ Google Sheet:
+1. **Từ Android Studio**:
 
-Mở Google Sheet với ID 1T0vRbdFnjTUTKkgcpbSuvjNnbG9eD49j_xjlknWtj_A.
-Nhấn Share, nhập email tài khoản dịch vụ (lấy từ service_account.json) và cấp quyền Editor.
+   - Mở **Gradle** panel (bên phải).
+   - Chọn `:app` > **Tasks** > **android** > **signingReport**.
+   - Chạy `signingReport`, SHA-1 xuất hiện trong **Run** console (variant: debug).
 
+2. **Từ lệnh `keytool`**:
 
+   - Mở terminal/command prompt.
+   - Chạy:
 
-Tích hợp Firebase Authentication
+     ```bash
+     keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android
+     ```
 
-Thực hiện các bước trong phần Thiết lập Firebase ở trên.
-Đảm bảo google-services.json được đặt đúng trong thư mục app.
-Cập nhật Web Client ID trong AuthRepository như mô tả ở phần Web Client ID.
+   - Sao chép SHA-1.
 
-Đồng bộ dự án
+3. **Thêm SHA-1 vào Firebase**:
 
-Nhấn Sync Project with Gradle Files trong Android Studio để tải các thư viện cần thiết.
+   - Trong **Firebase Console**, vào **Project Settings** > **Your apps**.
+   - Chọn ứng dụng Android hoặc thêm mới (package name: `com.example.electronicsaleshandbook`).
+   - Dán SHA-1 vào **SHA-1 certificate fingerprint**.
+   - Tải lại *google-services.json* nếu có thay đổi, đặt vào thư mục *app*.
 
-SHA-1
-SHA-1 là mã băm dùng để xác thực ứng dụng Android với Firebase, cần thiết cho Google Sign-In.
-Vai trò của SHA-1
+---
 
-SHA-1 đảm bảo ứng dụng Android được xác minh an toàn khi sử dụng Firebase Authentication.
-Cần thêm SHA-1 vào Firebase Console để Google Sign-In hoạt động.
+## Gỡ lỗi và Lưu ý
 
-Cách lấy SHA-1
+### Gỡ lỗi Google Sheets
 
-Từ Android Studio:
+- Kiểm tra log:
+  - `SheetRepository` (tag: `SheetRepository`).
+  - `CustomerRepository` (tag: `CustomerRepository`).
+  - `CustomerProductLinkRepository` (tag: `CustomerProductLinkRepository`).
+- Đảm bảo *service_account.json* tồn tại trong *assets*.
+- Kiểm tra quyền Google Sheet (email tài khoản dịch vụ cần quyền **Editor**).
+- Lỗi 429 (Quota exceeded): Điều chỉnh `MIN_REFRESH_INTERVAL` hoặc số lần thử lại trong `fetch*WithBackoff`.
 
-Mở Gradle panel (bên phải Android Studio).
-Chọn :app > Tasks > android > signingReport.
-Chạy signingReport, SHA-1 sẽ xuất hiện trong Run console (variant: debug).
+### Gỡ lỗi Firebase Authentication
 
+- Kiểm tra log trong `AuthRepository` (tag: `AuthRepository`).
+- Đảm bảo **Web Client ID** khớp với **Firebase Console**.
+- Kiểm tra SHA-1 trong **Firebase Console**.
+- Đảm bảo *google-services.json* đúng vị trí.
 
-Từ lệnh keytool:
+### Lưu ý khác
 
-Mở terminal/command prompt.
-Chạy lệnh:keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android
+- Các **ViewModel** dùng **LiveData** để cập nhật giao diện theo thời gian thực.
+- Ứng dụng dùng cache để giảm yêu cầu API. Gọi `invalidateCache` khi cần làm mới.
+- Đảm bảo kết nối internet khi chạy ứng dụng.
 
+---
 
-Sao chép SHA-1 từ đầu ra.
+## Cấu trúc Project
 
+### Repository
 
-Thêm SHA-1 vào Firebase:
+- `AuthRepository`: Quản lý đăng nhập/đăng ký (email, **Google Sign-In**).
+- `SheetRepository`: Quản lý sản phẩm và liên kết khách hàng-sản phẩm.
+- `CustomerRepository`: Quản lý khách hàng.
+- `CustomerProductLinkRepository`: Quản lý liên kết khách hàng-sản phẩm.
 
-Trong Firebase Console, vào Project Settings > Your apps.
-Chọn ứng dụng Android hoặc thêm mới (nhập package name com.example.electronicsaleshandbook).
-Dán SHA-1 vào trường SHA-1 certificate fingerprint.
-Tải lại file google-services.json nếu có thay đổi và đặt vào thư mục app.
+### ViewModel
 
+- `AuthViewModel`: Xử lý xác thực.
+- `ProductViewModel`: Tìm kiếm, sắp xếp, thêm/sửa/xóa sản phẩm.
+- `CustomerViewModel`: Tìm kiếm, sắp xếp, thêm/sửa/xóa khách hàng.
+- `CustomerProductLinkViewModel`: Làm mới liên kết khách hàng-sản phẩm.
+- `LinkViewModel`: Quản lý liên kết và lấy danh sách khách hàng/sản phẩm.
 
+---
 
-Gỡ lỗi và Lưu ý
-Gỡ lỗi Google Sheets
+## Liên hệ
 
-Kiểm tra log trong các repository (SheetRepository, CustomerRepository, CustomerProductLinkRepository) với tag tương ứng (ví dụ: SheetRepository).
-Đảm bảo file service_account.json tồn tại trong thư mục assets.
-Kiểm tra quyền truy cập Google Sheet (email tài khoản dịch vụ phải có quyền Editor).
-Nếu gặp lỗi 429 (Quota exceeded), điều chỉnh MIN_REFRESH_INTERVAL hoặc số lần thử lại trong fetch*WithBackoff.
-
-Gỡ lỗi Firebase Authentication
-
-Kiểm tra log trong AuthRepository (tag: AuthRepository).
-Đảm bảo Web Client ID trong AuthRepository khớp với Firebase Console.
-Kiểm tra SHA-1 trong Firebase Console có đúng với ứng dụng không.
-Đảm bảo google-services.json được đặt đúng trong thư mục app.
-
-Lưu ý khác
-
-Các ViewModel (ProductViewModel, CustomerViewModel, LinkViewModel, CustomerProductLinkViewModel, AuthViewModel) sử dụng LiveData để cập nhật giao diện theo thời gian thực.
-Ứng dụng sử dụng cơ chế cache để giảm số lượng yêu cầu API. Gọi invalidateCache trong repository khi cần làm mới dữ liệu.
-Đảm bảo kết nối internet khi ứng dụng chạy, vì tất cả dữ liệu được lấy từ Google Sheets.
-
-Cấu trúc Project
-
-Repository:
-
-AuthRepository: Quản lý đăng nhập/đăng ký bằng email và Google Sign-In.
-SheetRepository: Quản lý sản phẩm và liên kết khách hàng-sản phẩm.
-CustomerRepository: Quản lý khách hàng.
-CustomerProductLinkRepository: Quản lý liên kết khách hàng-sản phẩm (bổ sung cho SheetRepository).
-
-
-ViewModel:
-
-AuthViewModel: Xử lý logic xác thực.
-ProductViewModel: Xử lý tìm kiếm, sắp xếp, thêm/sửa/xóa sản phẩm.
-CustomerViewModel: Xử lý tìm kiếm, sắp xếp, thêm/sửa/xóa khách hàng.
-CustomerProductLinkViewModel: Xử lý làm mới liên kết khách hàng-sản phẩm.
-LinkViewModel: Quản lý liên kết khách hàng-sản phẩm và lấy danh sách khách hàng/sản phẩm.
-
-
-
-Liên hệ
-Nếu bạn có câu hỏi hoặc cần hỗ trợ, vui lòng mở issue trên GitHub hoặc liên hệ qua email: [your-email@example.com].
+Nếu có câu hỏi hoặc cần hỗ trợ, vui lòng mở **issue** trên GitHub hoặc liên hệ qua email: [leminhkhang48@gmail.com] hoặc số điện thoại Zalo: 0794356155.
